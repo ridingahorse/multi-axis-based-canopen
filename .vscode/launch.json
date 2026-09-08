@@ -28,21 +28,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "测试链路：G4硬件，加载F4的elf",
+            "name": "测试链路:F4硬件，加载F4的elf",
             "type": "cortex-debug",
             "request": "launch",
             "servertype": "openocd",
-            "executable": "${workspaceFolder}/build/AAACAN.elf", // 依旧用F4编译出来的elf符号
+            "executable": "${workspaceFolder}/build/multi_axis.elf", // 依旧用F4编译出来的elf符号
             "configFiles": [
                 "interface/stlink.cfg",
-                "target/stm32g4x.cfg"   // ✅ cfg必须匹配真实硬件G431，保证OpenOCD不崩溃
+                "target/stm32f4x.cfg"   // ✅ cfg必须匹配真实硬件G431，保证OpenOCD不崩溃
             ],
             "openOCDLaunchCommands": [
                 "reset_config none separate",
                 "init",
                 "reset halt"
             ],
-            "svdFile": "${workspaceFolder}/.vscode/STM32G431.svd", // SVD匹配真实硬件
+            "svdFile": "${workspaceFolder}/.vscode/STM32F407XX_FLASH.ld", // SVD匹配真实硬件
             "runToEntryPoint": "main",
             "showDevDebugOutput": "raw"
         }
