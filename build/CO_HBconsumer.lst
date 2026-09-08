@@ -1,0 +1,3066 @@
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"CO_HBconsumer.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "CANopen/301/CO_HBconsumer.c"
+  20              		.section	.text.CO_HBcons_receive,"ax",%progbits
+  21              		.align	1
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	CO_HBcons_receive:
+  27              	.LVL0:
+  28              	.LFB36:
+   1:CANopen/301/CO_HBconsumer.c **** /*
+   2:CANopen/301/CO_HBconsumer.c ****  * CANopen Heartbeat consumer object.
+   3:CANopen/301/CO_HBconsumer.c ****  *
+   4:CANopen/301/CO_HBconsumer.c ****  * @file        CO_HBconsumer.c
+   5:CANopen/301/CO_HBconsumer.c ****  * @ingroup     CO_HBconsumer
+   6:CANopen/301/CO_HBconsumer.c ****  * @author      Janez Paternoster
+   7:CANopen/301/CO_HBconsumer.c ****  * @copyright   2021 Janez Paternoster
+   8:CANopen/301/CO_HBconsumer.c ****  *
+   9:CANopen/301/CO_HBconsumer.c ****  * This file is part of <https://github.com/CANopenNode/CANopenNode>, a CANopen Stack.
+  10:CANopen/301/CO_HBconsumer.c ****  *
+  11:CANopen/301/CO_HBconsumer.c ****  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+  12:CANopen/301/CO_HBconsumer.c ****  * file except in compliance with the License. You may obtain a copy of the License at
+  13:CANopen/301/CO_HBconsumer.c ****  *
+  14:CANopen/301/CO_HBconsumer.c ****  *     http://www.apache.org/licenses/LICENSE-2.0
+  15:CANopen/301/CO_HBconsumer.c ****  *
+  16:CANopen/301/CO_HBconsumer.c ****  * Unless required by applicable law or agreed to in writing, software distributed under the Licens
+  17:CANopen/301/CO_HBconsumer.c ****  * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+  18:CANopen/301/CO_HBconsumer.c ****  * See the License for the specific language governing permissions and limitations under the Licens
+  19:CANopen/301/CO_HBconsumer.c ****  */
+  20:CANopen/301/CO_HBconsumer.c **** 
+  21:CANopen/301/CO_HBconsumer.c **** #include "301/CO_HBconsumer.h"
+  22:CANopen/301/CO_HBconsumer.c **** 
+  23:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_ENABLE) != 0
+  24:CANopen/301/CO_HBconsumer.c **** 
+  25:CANopen/301/CO_HBconsumer.c **** /* Verify HB consumer configuration */
+  26:CANopen/301/CO_HBconsumer.c **** #if (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0)                                 
+  27:CANopen/301/CO_HBconsumer.c ****     && (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0)
+  28:CANopen/301/CO_HBconsumer.c **** #error CO_CONFIG_HB_CONS_CALLBACK_CHANGE and CO_CONFIG_HB_CONS_CALLBACK_MULTI cannot be set simulta
+  29:CANopen/301/CO_HBconsumer.c **** #endif
+  30:CANopen/301/CO_HBconsumer.c **** 
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 2
+
+
+  31:CANopen/301/CO_HBconsumer.c **** /*
+  32:CANopen/301/CO_HBconsumer.c ****  * Read received message from CAN module.
+  33:CANopen/301/CO_HBconsumer.c ****  *
+  34:CANopen/301/CO_HBconsumer.c ****  * Function will be called (by CAN receive interrupt) every time, when CAN message with correct ide
+  35:CANopen/301/CO_HBconsumer.c ****  * will be received. For more information and description of parameters see file CO_driver.h.
+  36:CANopen/301/CO_HBconsumer.c ****  */
+  37:CANopen/301/CO_HBconsumer.c **** static void
+  38:CANopen/301/CO_HBconsumer.c **** CO_HBcons_receive(void* object, void* msg) {
+  29              		.loc 1 38 44 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+  39:CANopen/301/CO_HBconsumer.c ****     CO_HBconsNode_t* HBconsNode = object;
+  34              		.loc 1 39 5 view .LVU1
+  40:CANopen/301/CO_HBconsumer.c ****     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+  35              		.loc 1 40 5 view .LVU2
+  41:CANopen/301/CO_HBconsumer.c ****     const uint8_t* data = CO_CANrxMsg_readData(msg);
+  36              		.loc 1 41 5 view .LVU3
+  42:CANopen/301/CO_HBconsumer.c **** 
+  43:CANopen/301/CO_HBconsumer.c ****     if (DLC == 1U) {
+  37              		.loc 1 43 5 view .LVU4
+  44:CANopen/301/CO_HBconsumer.c ****         /* copy data and set 'new message' flag. */
+  45:CANopen/301/CO_HBconsumer.c ****         HBconsNode->NMTstate = (CO_NMT_internalState_t)data[0];
+  46:CANopen/301/CO_HBconsumer.c ****         CO_FLAG_SET(HBconsNode->CANrxNew);
+  38              		.loc 1 46 42 view .LVU5
+  47:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
+  48:CANopen/301/CO_HBconsumer.c ****         /* Optional signal to RTOS, which can resume task, which handles HBcons. */
+  49:CANopen/301/CO_HBconsumer.c ****         if (HBconsNode->pFunctSignalPre != NULL) {
+  50:CANopen/301/CO_HBconsumer.c ****             HBconsNode->pFunctSignalPre(HBconsNode->functSignalObjectPre);
+  51:CANopen/301/CO_HBconsumer.c ****         }
+  52:CANopen/301/CO_HBconsumer.c **** #endif
+  53:CANopen/301/CO_HBconsumer.c ****     }
+  54:CANopen/301/CO_HBconsumer.c **** }
+  39              		.loc 1 54 1 is_stmt 0 view .LVU6
+  40 0000 7047     		bx	lr
+  41              		.cfi_endproc
+  42              	.LFE36:
+  44              		.section	.text.CO_HBconsumer_initEntry,"ax",%progbits
+  45              		.align	1
+  46              		.syntax unified
+  47              		.thumb
+  48              		.thumb_func
+  50              	CO_HBconsumer_initEntry:
+  51              	.LVL1:
+  52              	.LFB39:
+  55:CANopen/301/CO_HBconsumer.c **** 
+  56:CANopen/301/CO_HBconsumer.c **** /*
+  57:CANopen/301/CO_HBconsumer.c ****  * Initialize one Heartbeat consumer entry
+  58:CANopen/301/CO_HBconsumer.c ****  *
+  59:CANopen/301/CO_HBconsumer.c ****  * This function is called from the @ref CO_HBconsumer_init() or when writing to OD entry 1016.
+  60:CANopen/301/CO_HBconsumer.c ****  *
+  61:CANopen/301/CO_HBconsumer.c ****  * @param HBcons This object.
+  62:CANopen/301/CO_HBconsumer.c ****  * @param idx index of the node in HBcons object
+  63:CANopen/301/CO_HBconsumer.c ****  * @param nodeId see OD 0x1016 description
+  64:CANopen/301/CO_HBconsumer.c ****  * @param consumerTime_ms in milliseconds. see OD 0x1016 description
+  65:CANopen/301/CO_HBconsumer.c ****  * @return
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 3
+
+
+  66:CANopen/301/CO_HBconsumer.c ****  */
+  67:CANopen/301/CO_HBconsumer.c **** static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t* HBcons, uint8_t idx, uint8_t nodeI
+  68:CANopen/301/CO_HBconsumer.c ****                                                 uint16_t consumerTime_ms);
+  69:CANopen/301/CO_HBconsumer.c **** 
+  70:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_FLAG_OD_DYNAMIC) != 0
+  71:CANopen/301/CO_HBconsumer.c **** /*
+  72:CANopen/301/CO_HBconsumer.c ****  * Custom function for writing OD object "Consumer heartbeat time"
+  73:CANopen/301/CO_HBconsumer.c ****  *
+  74:CANopen/301/CO_HBconsumer.c ****  * For more information see file CO_ODinterface.h, OD_IO_t.
+  75:CANopen/301/CO_HBconsumer.c ****  */
+  76:CANopen/301/CO_HBconsumer.c **** static ODR_t
+  77:CANopen/301/CO_HBconsumer.c **** OD_write_1016(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten) {
+  78:CANopen/301/CO_HBconsumer.c ****     CO_HBconsumer_t* HBcons;
+  79:CANopen/301/CO_HBconsumer.c **** 
+  80:CANopen/301/CO_HBconsumer.c ****     if (stream == NULL) {
+  81:CANopen/301/CO_HBconsumer.c ****         return ODR_DEV_INCOMPAT;
+  82:CANopen/301/CO_HBconsumer.c ****     }
+  83:CANopen/301/CO_HBconsumer.c ****     HBcons = stream->object;
+  84:CANopen/301/CO_HBconsumer.c **** 
+  85:CANopen/301/CO_HBconsumer.c ****     if ((buf == NULL) || (stream->subIndex < 1U)
+  86:CANopen/301/CO_HBconsumer.c ****         || (stream->subIndex > HBcons->numberOfMonitoredNodes) || (count != sizeof(uint32_t))
+  87:CANopen/301/CO_HBconsumer.c ****         || (countWritten == NULL)) {
+  88:CANopen/301/CO_HBconsumer.c ****         return ODR_DEV_INCOMPAT;
+  89:CANopen/301/CO_HBconsumer.c ****     }
+  90:CANopen/301/CO_HBconsumer.c **** 
+  91:CANopen/301/CO_HBconsumer.c ****     uint32_t val = CO_getUint32(buf);
+  92:CANopen/301/CO_HBconsumer.c ****     uint8_t nodeId = (uint8_t)((val >> 16) & 0xFFU);
+  93:CANopen/301/CO_HBconsumer.c ****     uint16_t consumer_time = (uint16_t)(val & 0xFFFFU);
+  94:CANopen/301/CO_HBconsumer.c ****     CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, stream->subIndex - 1U, nodeId, consumer_
+  95:CANopen/301/CO_HBconsumer.c ****     if (ret != CO_ERROR_NO) {
+  96:CANopen/301/CO_HBconsumer.c ****         return ODR_PAR_INCOMPAT;
+  97:CANopen/301/CO_HBconsumer.c ****     }
+  98:CANopen/301/CO_HBconsumer.c **** 
+  99:CANopen/301/CO_HBconsumer.c ****     /* write value to the original location in the Object Dictionary */
+ 100:CANopen/301/CO_HBconsumer.c ****     return OD_writeOriginal(stream, buf, count, countWritten);
+ 101:CANopen/301/CO_HBconsumer.c **** }
+ 102:CANopen/301/CO_HBconsumer.c **** #endif
+ 103:CANopen/301/CO_HBconsumer.c **** 
+ 104:CANopen/301/CO_HBconsumer.c **** CO_ReturnError_t
+ 105:CANopen/301/CO_HBconsumer.c **** CO_HBconsumer_init(CO_HBconsumer_t* HBcons, CO_EM_t* em, CO_HBconsNode_t* monitoredNodes, uint8_t m
+ 106:CANopen/301/CO_HBconsumer.c ****                    OD_entry_t* OD_1016_HBcons, CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdxStart,
+ 107:CANopen/301/CO_HBconsumer.c ****     ODR_t odRet;
+ 108:CANopen/301/CO_HBconsumer.c **** 
+ 109:CANopen/301/CO_HBconsumer.c ****     /* verify arguments */
+ 110:CANopen/301/CO_HBconsumer.c ****     if ((HBcons == NULL) || (em == NULL) || (monitoredNodes == NULL) || (OD_1016_HBcons == NULL)
+ 111:CANopen/301/CO_HBconsumer.c ****         || (CANdevRx == NULL)) {
+ 112:CANopen/301/CO_HBconsumer.c ****         return CO_ERROR_ILLEGAL_ARGUMENT;
+ 113:CANopen/301/CO_HBconsumer.c ****     }
+ 114:CANopen/301/CO_HBconsumer.c **** 
+ 115:CANopen/301/CO_HBconsumer.c ****     /* Configure object variables */
+ 116:CANopen/301/CO_HBconsumer.c ****     (void)memset(HBcons, 0, sizeof(CO_HBconsumer_t));
+ 117:CANopen/301/CO_HBconsumer.c ****     HBcons->em = em;
+ 118:CANopen/301/CO_HBconsumer.c ****     HBcons->monitoredNodes = monitoredNodes;
+ 119:CANopen/301/CO_HBconsumer.c ****     HBcons->CANdevRx = CANdevRx;
+ 120:CANopen/301/CO_HBconsumer.c ****     HBcons->CANdevRxIdxStart = CANdevRxIdxStart;
+ 121:CANopen/301/CO_HBconsumer.c **** 
+ 122:CANopen/301/CO_HBconsumer.c ****     /* get actual number of monitored nodes */
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 4
+
+
+ 123:CANopen/301/CO_HBconsumer.c ****     HBcons->numberOfMonitoredNodes = ((OD_1016_HBcons->subEntriesCount - 1U) < monitoredNodesCount)
+ 124:CANopen/301/CO_HBconsumer.c ****                                          ? (OD_1016_HBcons->subEntriesCount - 1U)
+ 125:CANopen/301/CO_HBconsumer.c ****                                          : monitoredNodesCount;
+ 126:CANopen/301/CO_HBconsumer.c **** 
+ 127:CANopen/301/CO_HBconsumer.c ****     for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
+ 128:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 129:CANopen/301/CO_HBconsumer.c ****         odRet = OD_get_u32(OD_1016_HBcons, i + 1U, &val, true);
+ 130:CANopen/301/CO_HBconsumer.c ****         if (odRet != ODR_OK) {
+ 131:CANopen/301/CO_HBconsumer.c ****             if (errInfo != NULL) {
+ 132:CANopen/301/CO_HBconsumer.c ****                 *errInfo = OD_getIndex(OD_1016_HBcons);
+ 133:CANopen/301/CO_HBconsumer.c ****             }
+ 134:CANopen/301/CO_HBconsumer.c ****             return CO_ERROR_OD_PARAMETERS;
+ 135:CANopen/301/CO_HBconsumer.c ****         }
+ 136:CANopen/301/CO_HBconsumer.c **** 
+ 137:CANopen/301/CO_HBconsumer.c ****         uint8_t nodeId = (uint8_t)((val >> 16) & 0xFFU);
+ 138:CANopen/301/CO_HBconsumer.c ****         uint16_t consumer_time = (uint16_t)(val & 0xFFFFU);
+ 139:CANopen/301/CO_HBconsumer.c ****         CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, i, nodeId, consumer_time);
+ 140:CANopen/301/CO_HBconsumer.c ****         if (ret != CO_ERROR_NO) {
+ 141:CANopen/301/CO_HBconsumer.c ****             if (errInfo != NULL) {
+ 142:CANopen/301/CO_HBconsumer.c ****                 *errInfo = OD_getIndex(OD_1016_HBcons);
+ 143:CANopen/301/CO_HBconsumer.c ****             }
+ 144:CANopen/301/CO_HBconsumer.c ****             /* don't break a program, if only value of a parameter is wrong */
+ 145:CANopen/301/CO_HBconsumer.c ****             if (ret != CO_ERROR_OD_PARAMETERS) {
+ 146:CANopen/301/CO_HBconsumer.c ****                 return ret;
+ 147:CANopen/301/CO_HBconsumer.c ****             }
+ 148:CANopen/301/CO_HBconsumer.c ****         }
+ 149:CANopen/301/CO_HBconsumer.c ****     }
+ 150:CANopen/301/CO_HBconsumer.c **** 
+ 151:CANopen/301/CO_HBconsumer.c ****     /* configure extension for OD */
+ 152:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_FLAG_OD_DYNAMIC) != 0
+ 153:CANopen/301/CO_HBconsumer.c ****     HBcons->OD_1016_extension.object = HBcons;
+ 154:CANopen/301/CO_HBconsumer.c ****     HBcons->OD_1016_extension.read = OD_readOriginal;
+ 155:CANopen/301/CO_HBconsumer.c ****     HBcons->OD_1016_extension.write = OD_write_1016;
+ 156:CANopen/301/CO_HBconsumer.c ****     odRet = OD_extension_init(OD_1016_HBcons, &HBcons->OD_1016_extension);
+ 157:CANopen/301/CO_HBconsumer.c ****     if (odRet != ODR_OK) {
+ 158:CANopen/301/CO_HBconsumer.c ****         if (errInfo != NULL) {
+ 159:CANopen/301/CO_HBconsumer.c ****             *errInfo = OD_getIndex(OD_1016_HBcons);
+ 160:CANopen/301/CO_HBconsumer.c ****         }
+ 161:CANopen/301/CO_HBconsumer.c ****         return CO_ERROR_OD_PARAMETERS;
+ 162:CANopen/301/CO_HBconsumer.c ****     }
+ 163:CANopen/301/CO_HBconsumer.c **** #endif
+ 164:CANopen/301/CO_HBconsumer.c **** 
+ 165:CANopen/301/CO_HBconsumer.c ****     return CO_ERROR_NO;
+ 166:CANopen/301/CO_HBconsumer.c **** }
+ 167:CANopen/301/CO_HBconsumer.c **** 
+ 168:CANopen/301/CO_HBconsumer.c **** static CO_ReturnError_t
+ 169:CANopen/301/CO_HBconsumer.c **** CO_HBconsumer_initEntry(CO_HBconsumer_t* HBcons, uint8_t idx, uint8_t nodeId, uint16_t consumerTime
+  53              		.loc 1 169 105 is_stmt 1 view -0
+  54              		.cfi_startproc
+  55              		@ args = 0, pretend = 0, frame = 16
+  56              		@ frame_needed = 0, uses_anonymous_args = 0
+  57              		.loc 1 169 105 is_stmt 0 view .LVU8
+  58 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+  59              	.LCFI0:
+  60              		.cfi_def_cfa_offset 28
+  61              		.cfi_offset 4, -28
+  62              		.cfi_offset 5, -24
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 5
+
+
+  63              		.cfi_offset 6, -20
+  64              		.cfi_offset 7, -16
+  65              		.cfi_offset 8, -12
+  66              		.cfi_offset 9, -8
+  67              		.cfi_offset 14, -4
+  68 0004 89B0     		sub	sp, sp, #36
+  69              	.LCFI1:
+  70              		.cfi_def_cfa_offset 64
+ 170:CANopen/301/CO_HBconsumer.c ****     CO_ReturnError_t ret = CO_ERROR_NO;
+  71              		.loc 1 170 5 is_stmt 1 view .LVU9
+  72              	.LVL2:
+ 171:CANopen/301/CO_HBconsumer.c **** 
+ 172:CANopen/301/CO_HBconsumer.c ****     /* verify arguments */
+ 173:CANopen/301/CO_HBconsumer.c ****     if ((HBcons == NULL) || (idx >= HBcons->numberOfMonitoredNodes)) {
+  73              		.loc 1 173 5 view .LVU10
+  74              		.loc 1 173 8 is_stmt 0 view .LVU11
+  75 0006 0028     		cmp	r0, #0
+  76 0008 57D0     		beq	.L10
+  77 000a 0D46     		mov	r5, r1
+  78 000c 1646     		mov	r6, r2
+  79 000e 1F46     		mov	r7, r3
+  80 0010 0446     		mov	r4, r0
+  81              		.loc 1 173 43 discriminator 1 view .LVU12
+  82 0012 90F80890 		ldrb	r9, [r0, #8]	@ zero_extendqisi2
+  83              		.loc 1 173 26 discriminator 1 view .LVU13
+  84 0016 8945     		cmp	r9, r1
+  85 0018 52D9     		bls	.L11
+ 174:CANopen/301/CO_HBconsumer.c ****         return CO_ERROR_ILLEGAL_ARGUMENT;
+ 175:CANopen/301/CO_HBconsumer.c ****     }
+ 176:CANopen/301/CO_HBconsumer.c **** 
+ 177:CANopen/301/CO_HBconsumer.c ****     /* verify for duplicate entries */
+ 178:CANopen/301/CO_HBconsumer.c ****     if ((consumerTime_ms != 0U) && (nodeId != 0U)) {
+  86              		.loc 1 178 5 is_stmt 1 view .LVU14
+  87              		.loc 1 178 8 is_stmt 0 view .LVU15
+  88 001a 03B1     		cbz	r3, .L4
+  89              		.loc 1 178 33 discriminator 1 view .LVU16
+  90 001c 72BB     		cbnz	r2, .L12
+  91              	.LVL3:
+  92              	.L4:
+  93              	.LBB16:
+ 179:CANopen/301/CO_HBconsumer.c ****         for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
+ 180:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t node = HBcons->monitoredNodes[i];
+ 181:CANopen/301/CO_HBconsumer.c ****             if ((idx != i) && (node.time_us != 0U) && (node.nodeId == nodeId)) {
+ 182:CANopen/301/CO_HBconsumer.c ****                 ret = CO_ERROR_OD_PARAMETERS;
+ 183:CANopen/301/CO_HBconsumer.c ****             }
+ 184:CANopen/301/CO_HBconsumer.c ****         }
+ 185:CANopen/301/CO_HBconsumer.c ****     }
+ 186:CANopen/301/CO_HBconsumer.c **** 
+ 187:CANopen/301/CO_HBconsumer.c ****     /* Configure one monitored node */
+ 188:CANopen/301/CO_HBconsumer.c ****     if (ret == CO_ERROR_NO) {
+ 189:CANopen/301/CO_HBconsumer.c ****         uint16_t COB_ID;
+  94              		.loc 1 189 9 is_stmt 1 view .LVU17
+ 190:CANopen/301/CO_HBconsumer.c **** 
+ 191:CANopen/301/CO_HBconsumer.c ****         CO_HBconsNode_t* monitoredNode = &HBcons->monitoredNodes[idx];
+  95              		.loc 1 191 9 view .LVU18
+  96              		.loc 1 191 49 is_stmt 0 view .LVU19
+  97 001e 6368     		ldr	r3, [r4, #4]
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 6
+
+
+  98              		.loc 1 191 65 view .LVU20
+  99 0020 2901     		lsls	r1, r5, #4
+ 100              		.loc 1 191 26 view .LVU21
+ 101 0022 03EB0510 		add	r0, r3, r5, lsl #4
+ 102              	.LVL4:
+ 192:CANopen/301/CO_HBconsumer.c ****         monitoredNode->nodeId = nodeId;
+ 103              		.loc 1 192 9 is_stmt 1 view .LVU22
+ 104              		.loc 1 192 31 is_stmt 0 view .LVU23
+ 105 0026 5E54     		strb	r6, [r3, r1]
+ 193:CANopen/301/CO_HBconsumer.c ****         monitoredNode->time_us = (uint32_t)consumerTime_ms * 1000U;
+ 106              		.loc 1 193 9 is_stmt 1 view .LVU24
+ 107              		.loc 1 193 60 is_stmt 0 view .LVU25
+ 108 0028 4FF47A73 		mov	r3, #1000
+ 109 002c 07FB03F3 		mul	r3, r7, r3
+ 110              		.loc 1 193 32 view .LVU26
+ 111 0030 8360     		str	r3, [r0, #8]
+ 194:CANopen/301/CO_HBconsumer.c ****         monitoredNode->NMTstate = CO_NMT_UNKNOWN;
+ 112              		.loc 1 194 9 is_stmt 1 view .LVU27
+ 113              		.loc 1 194 33 is_stmt 0 view .LVU28
+ 114 0032 FF22     		movs	r2, #255
+ 115 0034 4270     		strb	r2, [r0, #1]
+ 195:CANopen/301/CO_HBconsumer.c **** #if (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0)                                 
+ 196:CANopen/301/CO_HBconsumer.c ****     || (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0)
+ 197:CANopen/301/CO_HBconsumer.c ****         monitoredNode->NMTstatePrev = CO_NMT_UNKNOWN;
+ 198:CANopen/301/CO_HBconsumer.c **** #endif
+ 199:CANopen/301/CO_HBconsumer.c ****         CO_FLAG_CLEAR(monitoredNode->CANrxNew);
+ 116              		.loc 1 199 9 is_stmt 1 view .LVU29
+ 117              		.loc 1 199 9 view .LVU30
+ 118 0036 0022     		movs	r2, #0
+ 119 0038 C260     		str	r2, [r0, #12]
+ 120              		.loc 1 199 47 view .LVU31
+ 200:CANopen/301/CO_HBconsumer.c **** 
+ 201:CANopen/301/CO_HBconsumer.c ****         /* is channel used */
+ 202:CANopen/301/CO_HBconsumer.c ****         if ((monitoredNode->nodeId != 0U) && (monitoredNode->time_us != 0U)) {
+ 121              		.loc 1 202 9 view .LVU32
+ 122              		.loc 1 202 12 is_stmt 0 view .LVU33
+ 123 003a 3EB3     		cbz	r6, .L8
+ 124              		.loc 1 202 43 discriminator 1 view .LVU34
+ 125 003c 33B3     		cbz	r3, .L8
+ 203:CANopen/301/CO_HBconsumer.c ****             COB_ID = monitoredNode->nodeId + (uint16_t)CO_CAN_ID_HEARTBEAT;
+ 126              		.loc 1 203 13 is_stmt 1 view .LVU35
+ 127              		.loc 1 203 20 is_stmt 0 view .LVU36
+ 128 003e 06F5E062 		add	r2, r6, #1792
+ 129              	.LVL5:
+ 204:CANopen/301/CO_HBconsumer.c ****             monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
+ 130              		.loc 1 204 13 is_stmt 1 view .LVU37
+ 131              		.loc 1 204 36 is_stmt 0 view .LVU38
+ 132 0042 0123     		movs	r3, #1
+ 133 0044 8370     		strb	r3, [r0, #2]
+ 134 0046 24E0     		b	.L9
+ 135              	.LVL6:
+ 136              	.L6:
+ 137              		.loc 1 204 36 view .LVU39
+ 138              	.LBE16:
+ 139              	.LBB17:
+ 179:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t node = HBcons->monitoredNodes[i];
+ 140              		.loc 1 179 66 is_stmt 1 discriminator 2 view .LVU40
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 7
+
+
+ 141 0048 0CF1010C 		add	ip, ip, #1
+ 142              	.LVL7:
+ 179:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t node = HBcons->monitoredNodes[i];
+ 143              		.loc 1 179 66 is_stmt 0 discriminator 2 view .LVU41
+ 144 004c 5FFA8CFC 		uxtb	ip, ip
+ 145              	.LVL8:
+ 146              	.L5:
+ 179:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t node = HBcons->monitoredNodes[i];
+ 147              		.loc 1 179 31 is_stmt 1 discriminator 1 view .LVU42
+ 148 0050 E145     		cmp	r9, ip
+ 149 0052 17D9     		bls	.L15
+ 150              	.LBB18:
+ 180:CANopen/301/CO_HBconsumer.c ****             if ((idx != i) && (node.time_us != 0U) && (node.nodeId == nodeId)) {
+ 151              		.loc 1 180 13 view .LVU43
+ 180:CANopen/301/CO_HBconsumer.c ****             if ((idx != i) && (node.time_us != 0U) && (node.nodeId == nodeId)) {
+ 152              		.loc 1 180 58 is_stmt 0 view .LVU44
+ 153 0054 6368     		ldr	r3, [r4, #4]
+ 154 0056 03EB0C1E 		add	lr, r3, ip, lsl #4
+ 180:CANopen/301/CO_HBconsumer.c ****             if ((idx != i) && (node.time_us != 0U) && (node.nodeId == nodeId)) {
+ 155              		.loc 1 180 29 view .LVU45
+ 156 005a 9EE80F00 		ldm	lr, {r0, r1, r2, r3}
+ 157 005e 0DF1200E 		add	lr, sp, #32
+ 158 0062 0EE90F00 		stmdb	lr, {r0, r1, r2, r3}
+ 181:CANopen/301/CO_HBconsumer.c ****                 ret = CO_ERROR_OD_PARAMETERS;
+ 159              		.loc 1 181 13 is_stmt 1 view .LVU46
+ 181:CANopen/301/CO_HBconsumer.c ****                 ret = CO_ERROR_OD_PARAMETERS;
+ 160              		.loc 1 181 16 is_stmt 0 view .LVU47
+ 161 0066 AC45     		cmp	ip, r5
+ 162 0068 EED0     		beq	.L6
+ 181:CANopen/301/CO_HBconsumer.c ****                 ret = CO_ERROR_OD_PARAMETERS;
+ 163              		.loc 1 181 28 discriminator 1 view .LVU48
+ 164 006a 002A     		cmp	r2, #0
+ 165 006c ECD0     		beq	.L6
+ 181:CANopen/301/CO_HBconsumer.c ****                 ret = CO_ERROR_OD_PARAMETERS;
+ 166              		.loc 1 181 60 discriminator 2 view .LVU49
+ 167 006e 9DF81030 		ldrb	r3, [sp, #16]	@ zero_extendqisi2
+ 181:CANopen/301/CO_HBconsumer.c ****                 ret = CO_ERROR_OD_PARAMETERS;
+ 168              		.loc 1 181 52 discriminator 2 view .LVU50
+ 169 0072 B342     		cmp	r3, r6
+ 170 0074 E8D1     		bne	.L6
+ 182:CANopen/301/CO_HBconsumer.c ****             }
+ 171              		.loc 1 182 21 view .LVU51
+ 172 0076 6FF00B08 		mvn	r8, #11
+ 173              	.LVL9:
+ 182:CANopen/301/CO_HBconsumer.c ****             }
+ 174              		.loc 1 182 21 view .LVU52
+ 175 007a E5E7     		b	.L6
+ 176              	.LVL10:
+ 177              	.L12:
+ 182:CANopen/301/CO_HBconsumer.c ****             }
+ 178              		.loc 1 182 21 view .LVU53
+ 179              	.LBE18:
+ 179:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t node = HBcons->monitoredNodes[i];
+ 180              		.loc 1 179 22 view .LVU54
+ 181 007c 4FF0000C 		mov	ip, #0
+ 182              	.LBE17:
+ 170:CANopen/301/CO_HBconsumer.c **** 
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 8
+
+
+ 183              		.loc 1 170 22 view .LVU55
+ 184 0080 E046     		mov	r8, ip
+ 185 0082 E5E7     		b	.L5
+ 186              	.LVL11:
+ 187              	.L15:
+ 188:CANopen/301/CO_HBconsumer.c ****         uint16_t COB_ID;
+ 188              		.loc 1 188 5 is_stmt 1 view .LVU56
+ 188:CANopen/301/CO_HBconsumer.c ****         uint16_t COB_ID;
+ 189              		.loc 1 188 8 is_stmt 0 view .LVU57
+ 190 0084 B8F1000F 		cmp	r8, #0
+ 191 0088 13D1     		bne	.L3
+ 192 008a C8E7     		b	.L4
+ 193              	.LVL12:
+ 194              	.L8:
+ 195              	.LBB19:
+ 205:CANopen/301/CO_HBconsumer.c ****         } else {
+ 206:CANopen/301/CO_HBconsumer.c ****             COB_ID = 0;
+ 196              		.loc 1 206 13 is_stmt 1 view .LVU58
+ 207:CANopen/301/CO_HBconsumer.c ****             monitoredNode->time_us = 0;
+ 197              		.loc 1 207 13 view .LVU59
+ 198              		.loc 1 207 36 is_stmt 0 view .LVU60
+ 199 008c 0022     		movs	r2, #0
+ 200 008e 8260     		str	r2, [r0, #8]
+ 208:CANopen/301/CO_HBconsumer.c ****             monitoredNode->HBstate = CO_HBconsumer_UNCONFIGURED;
+ 201              		.loc 1 208 13 is_stmt 1 view .LVU61
+ 202              		.loc 1 208 36 is_stmt 0 view .LVU62
+ 203 0090 8270     		strb	r2, [r0, #2]
+ 204              	.LVL13:
+ 205              	.L9:
+ 209:CANopen/301/CO_HBconsumer.c ****         }
+ 210:CANopen/301/CO_HBconsumer.c **** 
+ 211:CANopen/301/CO_HBconsumer.c ****         /* configure Heartbeat consumer (or disable) CAN reception */
+ 212:CANopen/301/CO_HBconsumer.c ****         ret = CO_CANrxBufferInit(HBcons->CANdevRx, HBcons->CANdevRxIdxStart + idx, COB_ID, 0x7FF, f
+ 206              		.loc 1 212 9 is_stmt 1 view .LVU63
+ 207              		.loc 1 212 58 is_stmt 0 view .LVU64
+ 208 0092 A08B     		ldrh	r0, [r4, #28]
+ 209              	.LVL14:
+ 213:CANopen/301/CO_HBconsumer.c ****                                  (void*)&HBcons->monitoredNodes[idx], CO_HBcons_receive);
+ 210              		.loc 1 213 48 view .LVU65
+ 211 0094 6368     		ldr	r3, [r4, #4]
+ 212              		.loc 1 213 41 view .LVU66
+ 213 0096 0B44     		add	r3, r3, r1
+ 212:CANopen/301/CO_HBconsumer.c ****                                  (void*)&HBcons->monitoredNodes[idx], CO_HBcons_receive);
+ 214              		.loc 1 212 15 view .LVU67
+ 215 0098 2918     		adds	r1, r5, r0
+ 216 009a 0B48     		ldr	r0, .L16
+ 217 009c 0290     		str	r0, [sp, #8]
+ 218 009e 0193     		str	r3, [sp, #4]
+ 219 00a0 0023     		movs	r3, #0
+ 220 00a2 0093     		str	r3, [sp]
+ 221 00a4 40F2FF73 		movw	r3, #2047
+ 222 00a8 89B2     		uxth	r1, r1
+ 223 00aa A069     		ldr	r0, [r4, #24]
+ 224 00ac FFF7FEFF 		bl	CO_CANrxBufferInit
+ 225              	.LVL15:
+ 212:CANopen/301/CO_HBconsumer.c ****                                  (void*)&HBcons->monitoredNodes[idx], CO_HBcons_receive);
+ 226              		.loc 1 212 15 view .LVU68
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 9
+
+
+ 227 00b0 8046     		mov	r8, r0
+ 228              	.LVL16:
+ 229              	.L3:
+ 212:CANopen/301/CO_HBconsumer.c ****                                  (void*)&HBcons->monitoredNodes[idx], CO_HBcons_receive);
+ 230              		.loc 1 212 15 view .LVU69
+ 231              	.LBE19:
+ 214:CANopen/301/CO_HBconsumer.c ****     }
+ 215:CANopen/301/CO_HBconsumer.c ****     return ret;
+ 216:CANopen/301/CO_HBconsumer.c **** }
+ 232              		.loc 1 216 1 view .LVU70
+ 233 00b2 4046     		mov	r0, r8
+ 234 00b4 09B0     		add	sp, sp, #36
+ 235              	.LCFI2:
+ 236              		.cfi_remember_state
+ 237              		.cfi_def_cfa_offset 28
+ 238              		@ sp needed
+ 239 00b6 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 240              	.LVL17:
+ 241              	.L10:
+ 242              	.LCFI3:
+ 243              		.cfi_restore_state
+ 174:CANopen/301/CO_HBconsumer.c ****     }
+ 244              		.loc 1 174 16 view .LVU71
+ 245 00ba 4FF0FF38 		mov	r8, #-1
+ 246 00be F8E7     		b	.L3
+ 247              	.L11:
+ 174:CANopen/301/CO_HBconsumer.c ****     }
+ 248              		.loc 1 174 16 view .LVU72
+ 249 00c0 4FF0FF38 		mov	r8, #-1
+ 250 00c4 F5E7     		b	.L3
+ 251              	.L17:
+ 252 00c6 00BF     		.align	2
+ 253              	.L16:
+ 254 00c8 00000000 		.word	CO_HBcons_receive
+ 255              		.cfi_endproc
+ 256              	.LFE39:
+ 258              		.section	.text.OD_write_1016,"ax",%progbits
+ 259              		.align	1
+ 260              		.syntax unified
+ 261              		.thumb
+ 262              		.thumb_func
+ 264              	OD_write_1016:
+ 265              	.LVL18:
+ 266              	.LFB37:
+  77:CANopen/301/CO_HBconsumer.c ****     CO_HBconsumer_t* HBcons;
+ 267              		.loc 1 77 95 is_stmt 1 view -0
+ 268              		.cfi_startproc
+ 269              		@ args = 0, pretend = 0, frame = 0
+ 270              		@ frame_needed = 0, uses_anonymous_args = 0
+  78:CANopen/301/CO_HBconsumer.c **** 
+ 271              		.loc 1 78 5 view .LVU74
+  80:CANopen/301/CO_HBconsumer.c ****         return ODR_DEV_INCOMPAT;
+ 272              		.loc 1 80 5 view .LVU75
+  80:CANopen/301/CO_HBconsumer.c ****         return ODR_DEV_INCOMPAT;
+ 273              		.loc 1 80 8 is_stmt 0 view .LVU76
+ 274 0000 F0B1     		cbz	r0, .L20
+  77:CANopen/301/CO_HBconsumer.c ****     CO_HBconsumer_t* HBcons;
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 10
+
+
+ 275              		.loc 1 77 95 view .LVU77
+ 276 0002 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 277              	.LCFI4:
+ 278              		.cfi_def_cfa_offset 24
+ 279              		.cfi_offset 3, -24
+ 280              		.cfi_offset 4, -20
+ 281              		.cfi_offset 5, -16
+ 282              		.cfi_offset 6, -12
+ 283              		.cfi_offset 7, -8
+ 284              		.cfi_offset 14, -4
+ 285 0004 0C46     		mov	r4, r1
+ 286 0006 1746     		mov	r7, r2
+ 287 0008 1E46     		mov	r6, r3
+ 288 000a 0546     		mov	r5, r0
+  83:CANopen/301/CO_HBconsumer.c **** 
+ 289              		.loc 1 83 5 is_stmt 1 view .LVU78
+  83:CANopen/301/CO_HBconsumer.c **** 
+ 290              		.loc 1 83 12 is_stmt 0 view .LVU79
+ 291 000c 4068     		ldr	r0, [r0, #4]
+ 292              	.LVL19:
+  85:CANopen/301/CO_HBconsumer.c ****         || (stream->subIndex > HBcons->numberOfMonitoredNodes) || (count != sizeof(uint32_t))
+ 293              		.loc 1 85 5 is_stmt 1 view .LVU80
+  85:CANopen/301/CO_HBconsumer.c ****         || (stream->subIndex > HBcons->numberOfMonitoredNodes) || (count != sizeof(uint32_t))
+ 294              		.loc 1 85 8 is_stmt 0 view .LVU81
+ 295 000e C9B1     		cbz	r1, .L21
+  85:CANopen/301/CO_HBconsumer.c ****         || (stream->subIndex > HBcons->numberOfMonitoredNodes) || (count != sizeof(uint32_t))
+ 296              		.loc 1 85 33 discriminator 1 view .LVU82
+ 297 0010 297D     		ldrb	r1, [r5, #20]	@ zero_extendqisi2
+ 298              	.LVL20:
+  85:CANopen/301/CO_HBconsumer.c ****         || (stream->subIndex > HBcons->numberOfMonitoredNodes) || (count != sizeof(uint32_t))
+ 299              		.loc 1 85 23 discriminator 1 view .LVU83
+ 300 0012 C9B1     		cbz	r1, .L22
+  86:CANopen/301/CO_HBconsumer.c ****         || (countWritten == NULL)) {
+ 301              		.loc 1 86 38 view .LVU84
+ 302 0014 037A     		ldrb	r3, [r0, #8]	@ zero_extendqisi2
+ 303              	.LVL21:
+  86:CANopen/301/CO_HBconsumer.c ****         || (countWritten == NULL)) {
+ 304              		.loc 1 86 9 view .LVU85
+ 305 0016 9942     		cmp	r1, r3
+ 306 0018 18D8     		bhi	.L23
+  86:CANopen/301/CO_HBconsumer.c ****         || (countWritten == NULL)) {
+ 307              		.loc 1 86 64 discriminator 1 view .LVU86
+ 308 001a 042A     		cmp	r2, #4
+ 309 001c 18D1     		bne	.L24
+  87:CANopen/301/CO_HBconsumer.c ****         return ODR_DEV_INCOMPAT;
+ 310              		.loc 1 87 9 view .LVU87
+ 311 001e CEB1     		cbz	r6, .L25
+  91:CANopen/301/CO_HBconsumer.c ****     uint8_t nodeId = (uint8_t)((val >> 16) & 0xFFU);
+ 312              		.loc 1 91 5 is_stmt 1 view .LVU88
+ 313              	.LVL22:
+ 314              	.LBB20:
+ 315              	.LBI20:
+ 316              		.file 2 "CANopen/301/CO_driver.h"
+   1:CANopen/301/CO_driver.h **** /**
+   2:CANopen/301/CO_driver.h ****  * Interface between CAN hardware and CANopenNode.
+   3:CANopen/301/CO_driver.h ****  *
+   4:CANopen/301/CO_driver.h ****  * @file        CO_driver.h
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 11
+
+
+   5:CANopen/301/CO_driver.h ****  * @ingroup     CO_driver
+   6:CANopen/301/CO_driver.h ****  * @author      Janez Paternoster
+   7:CANopen/301/CO_driver.h ****  * @copyright   2004 - 2020 Janez Paternoster
+   8:CANopen/301/CO_driver.h ****  *
+   9:CANopen/301/CO_driver.h ****  * This file is part of <https://github.com/CANopenNode/CANopenNode>, a CANopen Stack.
+  10:CANopen/301/CO_driver.h ****  *
+  11:CANopen/301/CO_driver.h ****  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+  12:CANopen/301/CO_driver.h ****  * file except in compliance with the License. You may obtain a copy of the License at
+  13:CANopen/301/CO_driver.h ****  *
+  14:CANopen/301/CO_driver.h ****  *     http://www.apache.org/licenses/LICENSE-2.0
+  15:CANopen/301/CO_driver.h ****  *
+  16:CANopen/301/CO_driver.h ****  * Unless required by applicable law or agreed to in writing, software distributed under the Licens
+  17:CANopen/301/CO_driver.h ****  * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+  18:CANopen/301/CO_driver.h ****  * See the License for the specific language governing permissions and limitations under the Licens
+  19:CANopen/301/CO_driver.h ****  */
+  20:CANopen/301/CO_driver.h **** 
+  21:CANopen/301/CO_driver.h **** #ifndef CO_DRIVER_H
+  22:CANopen/301/CO_driver.h **** #define CO_DRIVER_H
+  23:CANopen/301/CO_driver.h **** 
+  24:CANopen/301/CO_driver.h **** #include <string.h>
+  25:CANopen/301/CO_driver.h **** 
+  26:CANopen/301/CO_driver.h **** #include "CO_config.h"
+  27:CANopen/301/CO_driver.h **** #include "CO_driver_target.h"
+  28:CANopen/301/CO_driver.h **** 
+  29:CANopen/301/CO_driver.h **** #ifdef __cplusplus
+  30:CANopen/301/CO_driver.h **** extern "C" {
+  31:CANopen/301/CO_driver.h **** #endif
+  32:CANopen/301/CO_driver.h **** 
+  33:CANopen/301/CO_driver.h **** /* Stack configuration default global values. For more information see file CO_config.h. */
+  34:CANopen/301/CO_driver.h **** #ifndef CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE
+  35:CANopen/301/CO_driver.h **** #define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE (0)
+  36:CANopen/301/CO_driver.h **** #endif
+  37:CANopen/301/CO_driver.h **** #ifndef CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE
+  38:CANopen/301/CO_driver.h **** #define CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE (0)
+  39:CANopen/301/CO_driver.h **** #endif
+  40:CANopen/301/CO_driver.h **** #ifndef CO_CONFIG_GLOBAL_FLAG_TIMERNEXT
+  41:CANopen/301/CO_driver.h **** #define CO_CONFIG_GLOBAL_FLAG_TIMERNEXT (0)
+  42:CANopen/301/CO_driver.h **** #endif
+  43:CANopen/301/CO_driver.h **** #ifndef CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC
+  44:CANopen/301/CO_driver.h **** #define CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC CO_CONFIG_FLAG_OD_DYNAMIC
+  45:CANopen/301/CO_driver.h **** #endif
+  46:CANopen/301/CO_driver.h **** #ifdef CO_DEBUG_COMMON
+  47:CANopen/301/CO_driver.h **** #if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_CLIENT
+  48:CANopen/301/CO_driver.h **** #define CO_DEBUG_SDO_CLIENT(msg) CO_DEBUG_COMMON(msg)
+  49:CANopen/301/CO_driver.h **** #endif
+  50:CANopen/301/CO_driver.h **** #if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_SERVER
+  51:CANopen/301/CO_driver.h **** #define CO_DEBUG_SDO_SERVER(msg) CO_DEBUG_COMMON(msg)
+  52:CANopen/301/CO_driver.h **** #endif
+  53:CANopen/301/CO_driver.h **** #endif
+  54:CANopen/301/CO_driver.h **** 
+  55:CANopen/301/CO_driver.h **** /**
+  56:CANopen/301/CO_driver.h ****  * @defgroup CO_driver Driver
+  57:CANopen/301/CO_driver.h ****  * Interface between CAN hardware and CANopenNode.
+  58:CANopen/301/CO_driver.h ****  *
+  59:CANopen/301/CO_driver.h ****  * @ingroup CO_CANopen_301
+  60:CANopen/301/CO_driver.h ****  * @{
+  61:CANopen/301/CO_driver.h ****  * CANopenNode is designed for speed and portability. It runs efficiently on devices from simple 16
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 12
+
+
+  62:CANopen/301/CO_driver.h ****  * to PC computers. It can run in multiple threads. Reception of CAN messages is pre-processed with
+  63:CANopen/301/CO_driver.h ****  * Time critical objects, such as PDO or SYNC are processed in real-time thread and other objects a
+  64:CANopen/301/CO_driver.h ****  * normal thread. See Flowchart in [README.md](index.html) for more information.
+  65:CANopen/301/CO_driver.h ****  *
+  66:CANopen/301/CO_driver.h ****  * @anchor CO_obj
+  67:CANopen/301/CO_driver.h ****  * #### CANopenNode Object
+  68:CANopen/301/CO_driver.h ****  * CANopenNode is implemented as a collection of different objects, for example SDO, SYNC, Emergenc
+  69:CANopen/301/CO_driver.h ****  * Heartbeat, etc. Code is written in C language and tries to be object oriented. So each CANopenNo
+  70:CANopen/301/CO_driver.h ****  * implemented in a pair of .h/.c files. It basically contains a structure with all necessary varia
+  71:CANopen/301/CO_driver.h ****  * functions which operates on it. CANopenNode Object is usually connected with one or more CAN rec
+  72:CANopen/301/CO_driver.h ****  * Message Objects. (CAN message Object is a CAN message with specific 11-bit CAN identifier (usual
+  73:CANopen/301/CO_driver.h ****  * range).)
+  74:CANopen/301/CO_driver.h ****  *
+  75:CANopen/301/CO_driver.h ****  * #### Hardware interface of CANopenNode
+  76:CANopen/301/CO_driver.h ****  * It consists of minimum three files:
+  77:CANopen/301/CO_driver.h ****  * - **CO_driver.h** file declares common functions. This file is part of the CANopenNode. It is in
+  78:CANopen/301/CO_driver.h ****  *   file from CANopenNode.
+  79:CANopen/301/CO_driver.h ****  * - **CO_driver_target.h** file declares microcontroller specific type declarations and defines so
+  80:CANopen/301/CO_driver.h ****  *   necessary for CANopenNode. This file is included from CO_driver.h.
+  81:CANopen/301/CO_driver.h ****  * - **CO_driver.c** file defines functions declared in CO_driver.h.
+  82:CANopen/301/CO_driver.h ****  *
+  83:CANopen/301/CO_driver.h ****  * **CO_driver_target.h** and **CO_driver.c** files are specific for each different microcontroller
+  84:CANopen/301/CO_driver.h ****  * CANopenNode. There are separate projects for different microcontrollers, which usually include C
+  85:CANopen/301/CO_driver.h ****  * submodule. CANopenNode only includes those two files in the `example` directory and they are bas
+  86:CANopen/301/CO_driver.h ****  * should be possible to compile the `CANopenNode/example` on any system, however compiled program 
+  87:CANopen/301/CO_driver.h ****  * CO_driver.h contains documentation for all necessary macros, types and functions.
+  88:CANopen/301/CO_driver.h ****  *
+  89:CANopen/301/CO_driver.h ****  * See [CANopenNode/Wiki](https://github.com/CANopenNode/CANopenNode/wiki) for a known list of avai
+  90:CANopen/301/CO_driver.h ****  * of CANopenNode on different systems and microcontrollers. Everybody is welcome to extend the lis
+  91:CANopen/301/CO_driver.h ****  * own implementation.
+  92:CANopen/301/CO_driver.h ****  *
+  93:CANopen/301/CO_driver.h ****  * Implementation of the hardware interface for specific microcontroller is not always an easy task
+  94:CANopen/301/CO_driver.h ****  * efficient operation it is necessary to know some parts of the target microcontroller in detail (
+  95:CANopen/301/CO_driver.h ****  * (or interrupts), CAN module, etc.).
+  96:CANopen/301/CO_driver.h ****  */
+  97:CANopen/301/CO_driver.h **** 
+  98:CANopen/301/CO_driver.h **** /** Major version number of CANopenNode */
+  99:CANopen/301/CO_driver.h **** #define CO_VERSION_MAJOR 4
+ 100:CANopen/301/CO_driver.h **** /** Minor version number of CANopenNode */
+ 101:CANopen/301/CO_driver.h **** #define CO_VERSION_MINOR 0
+ 102:CANopen/301/CO_driver.h **** 
+ 103:CANopen/301/CO_driver.h **** /* Macros and declarations in following part are only used for documentation. */
+ 104:CANopen/301/CO_driver.h **** #ifdef CO_DOXYGEN
+ 105:CANopen/301/CO_driver.h **** /**
+ 106:CANopen/301/CO_driver.h ****  * @defgroup CO_dataTypes Basic definitions
+ 107:CANopen/301/CO_driver.h ****  * @{
+ 108:CANopen/301/CO_driver.h ****  *
+ 109:CANopen/301/CO_driver.h ****  * Target specific basic definitions and data types.
+ 110:CANopen/301/CO_driver.h ****  *
+ 111:CANopen/301/CO_driver.h ****  * Must be defined in the **CO_driver_target.h** file.
+ 112:CANopen/301/CO_driver.h ****  *
+ 113:CANopen/301/CO_driver.h ****  * Depending on processor or compiler architecture, one of the two macros must be defined: CO_LITTL
+ 114:CANopen/301/CO_driver.h ****  * CO_BIG_ENDIAN. CANopen itself is little endian.
+ 115:CANopen/301/CO_driver.h ****  *
+ 116:CANopen/301/CO_driver.h ****  * Basic data types may be specified differently on different architectures. Usually `true` and `fa
+ 117:CANopen/301/CO_driver.h ****  * `<stdbool.h>`, `NULL` is defined in `<stddef.h>`, `int8_t` to `uint64_t` are defined in `<stdint
+ 118:CANopen/301/CO_driver.h ****  */
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 13
+
+
+ 119:CANopen/301/CO_driver.h **** #define CO_LITTLE_ENDIAN                 /**< CO_LITTLE_ENDIAN or CO_BIG_ENDIAN must be defined */
+ 120:CANopen/301/CO_driver.h **** #define CO_SWAP_16(x)    x               /**< Macro must swap bytes, if CO_BIG_ENDIAN is defined */
+ 121:CANopen/301/CO_driver.h **** #define CO_SWAP_32(x)    x               /**< Macro must swap bytes, if CO_BIG_ENDIAN is defined */
+ 122:CANopen/301/CO_driver.h **** #define CO_SWAP_64(x)    x               /**< Macro must swap bytes, if CO_BIG_ENDIAN is defined */
+ 123:CANopen/301/CO_driver.h **** #define NULL             (0)             /**< NULL, for general usage */
+ 124:CANopen/301/CO_driver.h **** #define true             1               /**< Logical true, for general use */
+ 125:CANopen/301/CO_driver.h **** #define false            0               /**< Logical false, for general use */
+ 126:CANopen/301/CO_driver.h **** typedef uint_fast8_t bool_t;             /**< Boolean data type for general use */
+ 127:CANopen/301/CO_driver.h **** typedef signed char int8_t;              /**< INTEGER8 in CANopen (0002h), 8-bit signed integer */
+ 128:CANopen/301/CO_driver.h **** typedef signed int int16_t;              /**< INTEGER16 in CANopen (0003h), 16-bit signed integer *
+ 129:CANopen/301/CO_driver.h **** typedef signed long int int32_t;         /**< INTEGER32 in CANopen (0004h), 32-bit signed integer *
+ 130:CANopen/301/CO_driver.h **** typedef signed long long int int64_t;    /**< INTEGER64 in CANopen (0015h), 64-bit signed integer *
+ 131:CANopen/301/CO_driver.h **** typedef unsigned char uint8_t;           /**< UNSIGNED8 in CANopen (0005h), 8-bit unsigned integer 
+ 132:CANopen/301/CO_driver.h **** typedef unsigned int uint16_t;           /**< UNSIGNED16 in CANopen (0006h), 16-bit unsigned intege
+ 133:CANopen/301/CO_driver.h **** typedef unsigned long int uint32_t;      /**< UNSIGNED32 in CANopen (0007h), 32-bit unsigned intege
+ 134:CANopen/301/CO_driver.h **** typedef unsigned long long int uint64_t; /**< UNSIGNED64 in CANopen (001Bh), 64-bit unsigned intege
+ 135:CANopen/301/CO_driver.h **** typedef float float32_t;  /**< REAL32 in CANopen (0008h), single precision floating point value, 32
+ 136:CANopen/301/CO_driver.h **** typedef double float64_t; /**< REAL64 in CANopen (0011h), double precision floating point value, 64
+ 137:CANopen/301/CO_driver.h **** /** @} */
+ 138:CANopen/301/CO_driver.h **** 
+ 139:CANopen/301/CO_driver.h **** /**
+ 140:CANopen/301/CO_driver.h ****  * @defgroup CO_CAN_Message_reception Reception of CAN messages
+ 141:CANopen/301/CO_driver.h ****  * @{
+ 142:CANopen/301/CO_driver.h ****  *
+ 143:CANopen/301/CO_driver.h ****  * Target specific definitions and description of CAN message reception
+ 144:CANopen/301/CO_driver.h ****  *
+ 145:CANopen/301/CO_driver.h ****  * CAN messages in CANopenNode are usually received by its own thread or higher priority interrupt.
+ 146:CANopen/301/CO_driver.h ****  * messages are first filtered by hardware or by software. Thread then examines its 11-bit CAN-id a
+ 147:CANopen/301/CO_driver.h ****  * determines, to which \ref CO_obj "CANopenNode Object" it belongs to. After that it calls predefi
+ 148:CANopen/301/CO_driver.h ****  * function, which quickly pre-processes the message and fetches the relevant data. CANrx_callback(
+ 149:CANopen/301/CO_driver.h ****  * by each \ref CO_obj "CANopenNode Object" separately. Pre-processed fetched data are later proces
+ 150:CANopen/301/CO_driver.h ****  * thread.
+ 151:CANopen/301/CO_driver.h ****  *
+ 152:CANopen/301/CO_driver.h ****  * If \ref CO_obj "CANopenNode Object" reception of specific CAN message, it must first configure i
+ 153:CANopen/301/CO_driver.h ****  * object with the CO_CANrxBufferInit() function.
+ 154:CANopen/301/CO_driver.h ****  */
+ 155:CANopen/301/CO_driver.h **** 
+ 156:CANopen/301/CO_driver.h **** /**
+ 157:CANopen/301/CO_driver.h ****  * CAN receive callback function which pre-processes received CAN message
+ 158:CANopen/301/CO_driver.h ****  *
+ 159:CANopen/301/CO_driver.h ****  * It is called by fast CAN receive thread. Each \ref CO_obj "CANopenNode Object" defines its own a
+ 160:CANopen/301/CO_driver.h ****  * CO_CANrxBufferInit(), by passing function pointer.
+ 161:CANopen/301/CO_driver.h ****  *
+ 162:CANopen/301/CO_driver.h ****  * @param object pointer to specific \ref CO_obj "CANopenNode Object", registered with CO_CANrxBuff
+ 163:CANopen/301/CO_driver.h ****  * @param rxMsg pointer to received CAN message
+ 164:CANopen/301/CO_driver.h ****  */
+ 165:CANopen/301/CO_driver.h **** void CANrx_callback(void* object, void* rxMsg);
+ 166:CANopen/301/CO_driver.h **** 
+ 167:CANopen/301/CO_driver.h **** /**
+ 168:CANopen/301/CO_driver.h ****  * CANrx_callback() can read CAN identifier from received CAN message
+ 169:CANopen/301/CO_driver.h ****  *
+ 170:CANopen/301/CO_driver.h ****  * Must be defined in the **CO_driver_target.h** file.
+ 171:CANopen/301/CO_driver.h ****  *
+ 172:CANopen/301/CO_driver.h ****  * This is target specific function and is specific for specific microcontroller. It is best to imp
+ 173:CANopen/301/CO_driver.h ****  * inline function or macro. `rxMsg` parameter should cast to a pointer to structure. For best effi
+ 174:CANopen/301/CO_driver.h ****  * have the same alignment as CAN registers inside CAN module.
+ 175:CANopen/301/CO_driver.h ****  *
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 14
+
+
+ 176:CANopen/301/CO_driver.h ****  * @param rxMsg Pointer to received message
+ 177:CANopen/301/CO_driver.h ****  * @return 11-bit CAN standard identifier.
+ 178:CANopen/301/CO_driver.h ****  */
+ 179:CANopen/301/CO_driver.h **** static inline uint16_t
+ 180:CANopen/301/CO_driver.h **** CO_CANrxMsg_readIdent(void* rxMsg) {
+ 181:CANopen/301/CO_driver.h ****     return 0;
+ 182:CANopen/301/CO_driver.h **** }
+ 183:CANopen/301/CO_driver.h **** 
+ 184:CANopen/301/CO_driver.h **** /**
+ 185:CANopen/301/CO_driver.h ****  * CANrx_callback() can read Data Length Code from received CAN message
+ 186:CANopen/301/CO_driver.h ****  *
+ 187:CANopen/301/CO_driver.h ****  * See also CO_CANrxMsg_readIdent():
+ 188:CANopen/301/CO_driver.h ****  *
+ 189:CANopen/301/CO_driver.h ****  * @param rxMsg Pointer to received message
+ 190:CANopen/301/CO_driver.h ****  * @return data length in bytes (0 to 8)
+ 191:CANopen/301/CO_driver.h ****  */
+ 192:CANopen/301/CO_driver.h **** static inline uint8_t
+ 193:CANopen/301/CO_driver.h **** CO_CANrxMsg_readDLC(void* rxMsg) {
+ 194:CANopen/301/CO_driver.h ****     return 0;
+ 195:CANopen/301/CO_driver.h **** }
+ 196:CANopen/301/CO_driver.h **** 
+ 197:CANopen/301/CO_driver.h **** /**
+ 198:CANopen/301/CO_driver.h ****  * CANrx_callback() can read pointer to data from received CAN message
+ 199:CANopen/301/CO_driver.h ****  *
+ 200:CANopen/301/CO_driver.h ****  * See also CO_CANrxMsg_readIdent():
+ 201:CANopen/301/CO_driver.h ****  *
+ 202:CANopen/301/CO_driver.h ****  * @param rxMsg Pointer to received message
+ 203:CANopen/301/CO_driver.h ****  * @return pointer to data buffer
+ 204:CANopen/301/CO_driver.h ****  */
+ 205:CANopen/301/CO_driver.h **** static inline const uint8_t*
+ 206:CANopen/301/CO_driver.h **** CO_CANrxMsg_readData(void* rxMsg) {
+ 207:CANopen/301/CO_driver.h ****     return NULL;
+ 208:CANopen/301/CO_driver.h **** }
+ 209:CANopen/301/CO_driver.h **** 
+ 210:CANopen/301/CO_driver.h **** /**
+ 211:CANopen/301/CO_driver.h ****  * Configuration object for CAN received message for specific \ref CO_obj "CANopenNode Object".
+ 212:CANopen/301/CO_driver.h ****  *
+ 213:CANopen/301/CO_driver.h ****  * Must be defined in the **CO_driver_target.h** file.
+ 214:CANopen/301/CO_driver.h ****  *
+ 215:CANopen/301/CO_driver.h ****  * Data fields of this structure are used exclusively by the driver. Usually it has the following d
+ 216:CANopen/301/CO_driver.h ****  * may differ for different microcontrollers. Array of multiple CO_CANrx_t objects is included insi
+ 217:CANopen/301/CO_driver.h ****  */
+ 218:CANopen/301/CO_driver.h **** typedef struct {
+ 219:CANopen/301/CO_driver.h ****     uint16_t ident; /**< Standard CAN Identifier (bits 0..10) + RTR (bit 11) */
+ 220:CANopen/301/CO_driver.h ****     uint16_t mask;  /**< Standard CAN Identifier mask with the same alignment as ident */
+ 221:CANopen/301/CO_driver.h ****     void* object;   /**< \ref CO_obj "CANopenNode Object" initialized in from CO_CANrxBufferInit() 
+ 222:CANopen/301/CO_driver.h ****     void (*pCANrx_callback)(void* object,
+ 223:CANopen/301/CO_driver.h ****                             void* message); /**< Pointer to CANrx_callback() initialized in CO_CANr
+ 224:CANopen/301/CO_driver.h **** } CO_CANrx_t;
+ 225:CANopen/301/CO_driver.h **** 
+ 226:CANopen/301/CO_driver.h **** /** @} */
+ 227:CANopen/301/CO_driver.h **** 
+ 228:CANopen/301/CO_driver.h **** /**
+ 229:CANopen/301/CO_driver.h ****  * @defgroup CO_CAN_Message_transmission Transmission of CAN messages
+ 230:CANopen/301/CO_driver.h ****  * @{
+ 231:CANopen/301/CO_driver.h ****  *
+ 232:CANopen/301/CO_driver.h ****  * Target specific definitions and description of CAN message transmission
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 15
+
+
+ 233:CANopen/301/CO_driver.h ****  *
+ 234:CANopen/301/CO_driver.h ****  * If \ref CO_obj "CANopenNode Object" needs transmitting CAN message, it must first configure its 
+ 235:CANopen/301/CO_driver.h ****  * with the CO_CANtxBufferInit() function. CAN message can then be sent with CO_CANsend() function.
+ 236:CANopen/301/CO_driver.h ****  * CAN transmit buffer inside microcontroller's CAN module is free, message is copied directly to t
+ 237:CANopen/301/CO_driver.h ****  * Otherwise CO_CANsend() function sets _bufferFull_ flag to true. Message will be then sent by CAN
+ 238:CANopen/301/CO_driver.h ****  * as CAN module is freed. Until message is not copied to CAN module, its contents must not change.
+ 239:CANopen/301/CO_driver.h ****  * multiple CO_CANtx_t objects with _bufferFull_ flag set to true, then CO_CANtx_t with lower index
+ 240:CANopen/301/CO_driver.h ****  */
+ 241:CANopen/301/CO_driver.h **** 
+ 242:CANopen/301/CO_driver.h **** /**
+ 243:CANopen/301/CO_driver.h ****  * Configuration object for CAN transmit message for specific \ref CO_obj "CANopenNode Object".
+ 244:CANopen/301/CO_driver.h ****  *
+ 245:CANopen/301/CO_driver.h ****  * Must be defined in the **CO_driver_target.h** file.
+ 246:CANopen/301/CO_driver.h ****  *
+ 247:CANopen/301/CO_driver.h ****  * Data fields of this structure are used exclusively by the driver. Usually it has the following d
+ 248:CANopen/301/CO_driver.h ****  * may differ for different microcontrollers. Array of multiple CO_CANtx_t objects is included insi
+ 249:CANopen/301/CO_driver.h ****  */
+ 250:CANopen/301/CO_driver.h **** typedef struct {
+ 251:CANopen/301/CO_driver.h ****     uint32_t ident;             /**< CAN identifier as aligned in CAN module */
+ 252:CANopen/301/CO_driver.h ****     uint8_t DLC;                /**< Length of CAN message */
+ 253:CANopen/301/CO_driver.h ****     uint8_t data[8];            /**< 8 data bytes */
+ 254:CANopen/301/CO_driver.h ****     volatile bool_t bufferFull; /**< True if previous message is still in the buffer */
+ 255:CANopen/301/CO_driver.h ****     volatile bool_t syncFlag;   /**< Synchronous PDO messages has this flag set. It prevents them t
+ 256:CANopen/301/CO_driver.h ****                                    synchronous window */
+ 257:CANopen/301/CO_driver.h **** } CO_CANtx_t;
+ 258:CANopen/301/CO_driver.h **** 
+ 259:CANopen/301/CO_driver.h **** /** @} */
+ 260:CANopen/301/CO_driver.h **** 
+ 261:CANopen/301/CO_driver.h **** /**
+ 262:CANopen/301/CO_driver.h ****  * Complete CAN module object.
+ 263:CANopen/301/CO_driver.h ****  *
+ 264:CANopen/301/CO_driver.h ****  * Must be defined in the **CO_driver_target.h** file.
+ 265:CANopen/301/CO_driver.h ****  *
+ 266:CANopen/301/CO_driver.h ****  * Usually it has the following data fields, but they may differ for different microcontrollers.
+ 267:CANopen/301/CO_driver.h ****  */
+ 268:CANopen/301/CO_driver.h **** typedef struct {
+ 269:CANopen/301/CO_driver.h ****     void* CANptr;                    /**< From CO_CANmodule_init() */
+ 270:CANopen/301/CO_driver.h ****     CO_CANrx_t* rxArray;             /**< From CO_CANmodule_init() */
+ 271:CANopen/301/CO_driver.h ****     uint16_t rxSize;                 /**< From CO_CANmodule_init() */
+ 272:CANopen/301/CO_driver.h ****     CO_CANtx_t* txArray;             /**< From CO_CANmodule_init() */
+ 273:CANopen/301/CO_driver.h ****     uint16_t txSize;                 /**< From CO_CANmodule_init() */
+ 274:CANopen/301/CO_driver.h ****     uint16_t CANerrorStatus;         /**< CAN error status bitfield, see @ref CO_CAN_ERR_status_t *
+ 275:CANopen/301/CO_driver.h ****     volatile bool_t CANnormal;       /**< CAN module is in normal mode */
+ 276:CANopen/301/CO_driver.h ****     volatile bool_t useCANrxFilters; /**< Value different than zero indicates, that CAN module hard
+ 277:CANopen/301/CO_driver.h ****                                         for CAN reception. If there is not enough hardware filters,
+ 278:CANopen/301/CO_driver.h ****                                         In this case will be *all* received CAN messages processed 
+ 279:CANopen/301/CO_driver.h ****     volatile bool_t bufferInhibitFlag; /**< If flag is true, then message in transmit buffer is syn
+ 280:CANopen/301/CO_driver.h ****                                           which will be aborted, if CO_clearPendingSyncPDOs() funct
+ 281:CANopen/301/CO_driver.h ****                                           application. This may be necessary if Synchronous window 
+ 282:CANopen/301/CO_driver.h ****     volatile bool_t
+ 283:CANopen/301/CO_driver.h ****         firstCANtxMessage; /**< Equal to 1, when the first transmitted message (bootup message) is 
+ 284:CANopen/301/CO_driver.h ****     volatile uint16_t
+ 285:CANopen/301/CO_driver.h ****         CANtxCount;  /**< Number of messages in transmit buffer, which are waiting to be copied to 
+ 286:CANopen/301/CO_driver.h ****     uint32_t errOld; /**< Previous state of CAN errors */
+ 287:CANopen/301/CO_driver.h **** } CO_CANmodule_t;
+ 288:CANopen/301/CO_driver.h **** 
+ 289:CANopen/301/CO_driver.h **** /**
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 16
+
+
+ 290:CANopen/301/CO_driver.h ****  * Data storage object for one entry.
+ 291:CANopen/301/CO_driver.h ****  *
+ 292:CANopen/301/CO_driver.h ****  * Must be defined in the **CO_driver_target.h** file.
+ 293:CANopen/301/CO_driver.h ****  *
+ 294:CANopen/301/CO_driver.h ****  * For more information on Data storage see @ref CO_storage or **CO_storage.h** file. Structure mem
+ 295:CANopen/301/CO_driver.h ****  * are always required or required with @ref CO_storage_eeprom. Target system may add own additiona
+ 296:CANopen/301/CO_driver.h ****  * variables.
+ 297:CANopen/301/CO_driver.h ****  */
+ 298:CANopen/301/CO_driver.h **** typedef struct {
+ 299:CANopen/301/CO_driver.h ****     void* addr;         /**< Address of data to store, always required. */
+ 300:CANopen/301/CO_driver.h ****     size_t len;         /**< Length of data to store, always required. */
+ 301:CANopen/301/CO_driver.h ****     uint8_t subIndexOD; /**< Sub index in OD objects 1010 and 1011, from 2 to 127. Writing 0x657661
+ 302:CANopen/301/CO_driver.h ****                            will store data to non-volatile memory Writing 0x64616F6C to 1011,subInd
+ 303:CANopen/301/CO_driver.h ****                            default data, always required. */
+ 304:CANopen/301/CO_driver.h ****     uint8_t attr;       /**< Attribute from @ref CO_storage_attributes_t, always required. */
+ 305:CANopen/301/CO_driver.h ****     void* storageModule; /**< Pointer to storage module, target system specific usage, required wit
+ 306:CANopen/301/CO_driver.h ****                             CO_storage_eeprom. */
+ 307:CANopen/301/CO_driver.h ****     uint16_t crc; /**< CRC checksum of the data stored in eeprom, set on store, required with @ref 
+ 308:CANopen/301/CO_driver.h ****     size_t eepromAddrSignature; /**< Address of entry signature inside eeprom, set by init, require
+ 309:CANopen/301/CO_driver.h ****                                    CO_storage_eeprom. */
+ 310:CANopen/301/CO_driver.h ****     size_t eepromAddr; /**< Address of data inside eeprom, set by init, required with @ref CO_stora
+ 311:CANopen/301/CO_driver.h ****     size_t offset; /**< Offset of next byte being updated by automatic storage, required with @ref 
+ 312:CANopen/301/CO_driver.h ****     void* additionalParameters; /**< Additional target specific parameters, optional. */
+ 313:CANopen/301/CO_driver.h **** } CO_storage_entry_t;
+ 314:CANopen/301/CO_driver.h **** 
+ 315:CANopen/301/CO_driver.h **** /**
+ 316:CANopen/301/CO_driver.h ****  * @defgroup CO_critical_sections Critical sections
+ 317:CANopen/301/CO_driver.h ****  * @{
+ 318:CANopen/301/CO_driver.h ****  *
+ 319:CANopen/301/CO_driver.h ****  * Protection of critical sections in multi-threaded operation.
+ 320:CANopen/301/CO_driver.h ****  *
+ 321:CANopen/301/CO_driver.h ****  * CANopenNode is designed to run in different threads, as described in [README.md](index.html). Th
+ 322:CANopen/301/CO_driver.h ****  * differently in different systems. In microcontrollers threads are interrupts with different prio
+ 323:CANopen/301/CO_driver.h ****  * It is necessary to protect sections, where different threads access to the same resource. In sim
+ 324:CANopen/301/CO_driver.h ****  * interrupts or scheduler may be temporary disabled between access to the shared resource. Otherwi
+ 325:CANopen/301/CO_driver.h ****  * semaphores can be used.
+ 326:CANopen/301/CO_driver.h ****  *
+ 327:CANopen/301/CO_driver.h ****  * #### Reentrant functions
+ 328:CANopen/301/CO_driver.h ****  * Functions CO_CANsend() from C_driver.h, and CO_error() from CO_Emergency.h may be called from di
+ 329:CANopen/301/CO_driver.h ****  * Critical sections must be protected. Either by disabling scheduler or interrupts or by mutexes o
+ 330:CANopen/301/CO_driver.h ****  * Lock/unlock macro is called with pointer to CAN module, which may be used inside.
+ 331:CANopen/301/CO_driver.h ****  *
+ 332:CANopen/301/CO_driver.h ****  * #### Object Dictionary variables
+ 333:CANopen/301/CO_driver.h ****  * In general, there are two threads, which accesses OD variables: mainline (initialization, storag
+ 334:CANopen/301/CO_driver.h ****  * timer (PDO access). CANopenNode uses locking mechanism, where SDO server (or other mainline code
+ 335:CANopen/301/CO_driver.h ****  * of the real-time thread at the moment it reads or writes OD variable. CO_LOCK_OD(CAN_MODULE) and
+ 336:CANopen/301/CO_driver.h ****  * CO_UNLOCK_OD(CAN_MODULE) macros are used to protect:
+ 337:CANopen/301/CO_driver.h ****  * - Whole real-time thread,
+ 338:CANopen/301/CO_driver.h ****  * - SDO server protects read/write access to OD variable.   Locking of long OD variables, not acce
+ 339:CANopen/301/CO_driver.h ****  *   thread, may   block RT thread.
+ 340:CANopen/301/CO_driver.h ****  * - Any mainline code, which accesses PDO-mappable OD variable, must protect   read/write with loc
+ 341:CANopen/301/CO_driver.h ****  *   OD_mappable() for check.
+ 342:CANopen/301/CO_driver.h ****  * - Other cases, where non-PDO-mappable OD variable is used inside real-time   thread by some othe
+ 343:CANopen/301/CO_driver.h ****  *   application must be considered with   special care. Also when there are multiple threads acces
+ 344:CANopen/301/CO_driver.h ****  *   (e.g. when using a RTOS), you should always lock the OD.
+ 345:CANopen/301/CO_driver.h ****  *
+ 346:CANopen/301/CO_driver.h ****  * #### Synchronization functions for CAN receive
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 17
+
+
+ 347:CANopen/301/CO_driver.h ****  * After CAN message is received, it is pre-processed in CANrx_callback(), which copies some data i
+ 348:CANopen/301/CO_driver.h ****  * object and at the end sets **new_message** flag. This flag is then pooled in another thread, whi
+ 349:CANopen/301/CO_driver.h ****  * the message. The problem is, that compiler optimization may shuffle memory operations, so it is 
+ 350:CANopen/301/CO_driver.h ****  * that **new_message** flag is surely set at the end. It is necessary to use [Memory
+ 351:CANopen/301/CO_driver.h ****  * barrier](https://en.wikipedia.org/wiki/Memory_barrier).
+ 352:CANopen/301/CO_driver.h ****  *
+ 353:CANopen/301/CO_driver.h ****  * If receive function runs inside IRQ, no further synchronization is needed. Otherwise, some kind 
+ 354:CANopen/301/CO_driver.h ****  * has to be included. The following example uses GCC builtin memory barrier `__sync_synchronize()`
+ 355:CANopen/301/CO_driver.h ****  * can be found [here](https://stackoverflow.com/questions/982129/what-does-sync-synchronize-do#982
+ 356:CANopen/301/CO_driver.h ****  */
+ 357:CANopen/301/CO_driver.h **** 
+ 358:CANopen/301/CO_driver.h **** #define CO_LOCK_CAN_SEND(CAN_MODULE)   /**< Lock critical section in CO_CANsend() */
+ 359:CANopen/301/CO_driver.h **** #define CO_UNLOCK_CAN_SEND(CAN_MODULE) /**< Unlock critical section in CO_CANsend() */
+ 360:CANopen/301/CO_driver.h **** #define CO_LOCK_EMCY(CAN_MODULE)       /**< Lock critical section in CO_errorReport() or CO_errorRe
+ 361:CANopen/301/CO_driver.h **** #define CO_UNLOCK_EMCY(CAN_MODULE)     /**< Unlock critical section in CO_errorReport() or CO_error
+ 362:CANopen/301/CO_driver.h **** #define CO_LOCK_OD(CAN_MODULE)         /**< Lock critical section when accessing Object Dictionary 
+ 363:CANopen/301/CO_driver.h **** #define CO_UNLOCK_OD(CAN_MODULE)       /**< Unock critical section when accessing Object Dictionary
+ 364:CANopen/301/CO_driver.h **** 
+ 365:CANopen/301/CO_driver.h **** /** Check if new message has arrived */
+ 366:CANopen/301/CO_driver.h **** #define CO_FLAG_READ(rxNew)            ((rxNew) != NULL)
+ 367:CANopen/301/CO_driver.h **** /** Set new message flag */
+ 368:CANopen/301/CO_driver.h **** #define CO_FLAG_SET(rxNew)                                                                         
+ 369:CANopen/301/CO_driver.h ****     {                                                                                              
+ 370:CANopen/301/CO_driver.h ****         __sync_synchronize();                                                                      
+ 371:CANopen/301/CO_driver.h ****         rxNew = (void*)1L;                                                                         
+ 372:CANopen/301/CO_driver.h ****     }
+ 373:CANopen/301/CO_driver.h **** /** Clear new message flag */
+ 374:CANopen/301/CO_driver.h **** #define CO_FLAG_CLEAR(rxNew)                                                                       
+ 375:CANopen/301/CO_driver.h ****     {                                                                                              
+ 376:CANopen/301/CO_driver.h ****         __sync_synchronize();                                                                      
+ 377:CANopen/301/CO_driver.h ****         rxNew = NULL;                                                                              
+ 378:CANopen/301/CO_driver.h ****     }
+ 379:CANopen/301/CO_driver.h **** 
+ 380:CANopen/301/CO_driver.h **** /** @} */
+ 381:CANopen/301/CO_driver.h **** #endif /* CO_DOXYGEN */
+ 382:CANopen/301/CO_driver.h **** 
+ 383:CANopen/301/CO_driver.h **** /**
+ 384:CANopen/301/CO_driver.h ****  * @defgroup CO_Default_CAN_ID_t Default CANopen identifiers
+ 385:CANopen/301/CO_driver.h ****  * @{
+ 386:CANopen/301/CO_driver.h ****  *
+ 387:CANopen/301/CO_driver.h ****  * Default CANopen identifiers for CANopen communication objects. Same as 11-bit addresses of CAN m
+ 388:CANopen/301/CO_driver.h ****  * default identifiers and can be changed in CANopen. Especially PDO identifiers are configured in 
+ 389:CANopen/301/CO_driver.h ****  * the CANopen network configuration.
+ 390:CANopen/301/CO_driver.h ****  */
+ 391:CANopen/301/CO_driver.h **** #define CO_CAN_ID_NMT_SERVICE 0x000U /**< 0x000 Network management */
+ 392:CANopen/301/CO_driver.h **** #define CO_CAN_ID_GFC         0x001U /**< 0x001 Global fail-safe command */
+ 393:CANopen/301/CO_driver.h **** #define CO_CAN_ID_SYNC        0x080U /**< 0x080 Synchronous message */
+ 394:CANopen/301/CO_driver.h **** #define CO_CAN_ID_EMERGENCY   0x080U /**< 0x080 Emergency messages (+nodeID) */
+ 395:CANopen/301/CO_driver.h **** #define CO_CAN_ID_TIME        0x100U /**< 0x100 Time message */
+ 396:CANopen/301/CO_driver.h **** #define CO_CAN_ID_SRDO_1      0x0FFU /**< 0x0FF Default SRDO1 (+2*nodeID) */
+ 397:CANopen/301/CO_driver.h **** #define CO_CAN_ID_TPDO_1      0x180U /**< 0x180 Default TPDO1 (+nodeID) */
+ 398:CANopen/301/CO_driver.h **** #define CO_CAN_ID_RPDO_1      0x200U /**< 0x200 Default RPDO1 (+nodeID) */
+ 399:CANopen/301/CO_driver.h **** #define CO_CAN_ID_TPDO_2      0x280U /**< 0x280 Default TPDO2 (+nodeID) */
+ 400:CANopen/301/CO_driver.h **** #define CO_CAN_ID_RPDO_2      0x300U /**< 0x300 Default RPDO2 (+nodeID) */
+ 401:CANopen/301/CO_driver.h **** #define CO_CAN_ID_TPDO_3      0x380U /**< 0x380 Default TPDO3 (+nodeID) */
+ 402:CANopen/301/CO_driver.h **** #define CO_CAN_ID_RPDO_3      0x400U /**< 0x400 Default RPDO3 (+nodeID) */
+ 403:CANopen/301/CO_driver.h **** #define CO_CAN_ID_TPDO_4      0x480U /**< 0x480 Default TPDO4 (+nodeID) */
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 18
+
+
+ 404:CANopen/301/CO_driver.h **** #define CO_CAN_ID_RPDO_4      0x500U /**< 0x500 Default RPDO5 (+nodeID) */
+ 405:CANopen/301/CO_driver.h **** #define CO_CAN_ID_SDO_SRV     0x580U /**< 0x580 SDO response from server (+nodeID) */
+ 406:CANopen/301/CO_driver.h **** #define CO_CAN_ID_SDO_CLI     0x600U /**< 0x600 SDO request from client (+nodeID) */
+ 407:CANopen/301/CO_driver.h **** #define CO_CAN_ID_HEARTBEAT   0x700U /**< 0x700 Heartbeat message */
+ 408:CANopen/301/CO_driver.h **** #define CO_CAN_ID_LSS_SLV     0x7E4U /**< 0x7E4 LSS response from slave */
+ 409:CANopen/301/CO_driver.h **** #define CO_CAN_ID_LSS_MST     0x7E5U /**< 0x7E5 LSS request from master */
+ 410:CANopen/301/CO_driver.h **** 
+ 411:CANopen/301/CO_driver.h **** /** @} */ /* CO_Default_CAN_ID_t */
+ 412:CANopen/301/CO_driver.h **** 
+ 413:CANopen/301/CO_driver.h **** /**
+ 414:CANopen/301/CO_driver.h ****  * Restricted CAN-IDs
+ 415:CANopen/301/CO_driver.h ****  *
+ 416:CANopen/301/CO_driver.h ****  * Macro for verifying 'Restricted CAN-IDs', as specified by standard CiA301. They shall not be use
+ 417:CANopen/301/CO_driver.h ****  * EMCY, PDO and SDO.
+ 418:CANopen/301/CO_driver.h ****  */
+ 419:CANopen/301/CO_driver.h **** #ifndef CO_IS_RESTRICTED_CAN_ID
+ 420:CANopen/301/CO_driver.h **** #define CO_IS_RESTRICTED_CAN_ID(CAN_ID)                                                            
+ 421:CANopen/301/CO_driver.h ****     (((CAN_ID) <= 0x7FU) || (((CAN_ID) >= 0x101U) && ((CAN_ID) <= 0x180U))                         
+ 422:CANopen/301/CO_driver.h ****      || (((CAN_ID) >= 0x581U) && ((CAN_ID) <= 0x5FFU)) || (((CAN_ID) >= 0x601U) && ((CAN_ID) <= 0x6
+ 423:CANopen/301/CO_driver.h ****      || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) || ((CAN_ID) >= 0x701U))
+ 424:CANopen/301/CO_driver.h **** #endif
+ 425:CANopen/301/CO_driver.h **** 
+ 426:CANopen/301/CO_driver.h **** /**
+ 427:CANopen/301/CO_driver.h ****  * @defgroup CO_CAN_ERR_status_t CAN error status bitmasks
+ 428:CANopen/301/CO_driver.h ****  * @{
+ 429:CANopen/301/CO_driver.h ****  *
+ 430:CANopen/301/CO_driver.h ****  * CAN warning level is reached, if CAN transmit or receive error counter is more or equal to 96. C
+ 431:CANopen/301/CO_driver.h ****  * reached, if counters are more or equal to 128. Transmitter goes in error state 'bus off' if tran
+ 432:CANopen/301/CO_driver.h ****  * more or equal to 256.
+ 433:CANopen/301/CO_driver.h ****  */
+ 434:CANopen/301/CO_driver.h **** #define CO_CAN_ERRTX_WARNING    0x0001U /**< 0x0001 CAN transmitter warning */
+ 435:CANopen/301/CO_driver.h **** #define CO_CAN_ERRTX_PASSIVE    0x0002U /**< 0x0002 CAN transmitter passive */
+ 436:CANopen/301/CO_driver.h **** #define CO_CAN_ERRTX_BUS_OFF    0x0004U /**< 0x0004 CAN transmitter bus off */
+ 437:CANopen/301/CO_driver.h **** #define CO_CAN_ERRTX_OVERFLOW   0x0008U /**< 0x0008 CAN transmitter overflow */
+ 438:CANopen/301/CO_driver.h **** #define CO_CAN_ERRTX_PDO_LATE   0x0080U /**< 0x0080 TPDO is outside sync window */
+ 439:CANopen/301/CO_driver.h **** #define CO_CAN_ERRRX_WARNING    0x0100U /**< 0x0100 CAN receiver warning */
+ 440:CANopen/301/CO_driver.h **** #define CO_CAN_ERRRX_PASSIVE    0x0200U /**< 0x0200 CAN receiver passive */
+ 441:CANopen/301/CO_driver.h **** #define CO_CAN_ERRRX_OVERFLOW   0x0800U /**< 0x0800 CAN receiver overflow */
+ 442:CANopen/301/CO_driver.h **** #define CO_CAN_ERR_WARN_PASSIVE 0x0303U /**< 0x0303 combination */
+ 443:CANopen/301/CO_driver.h **** 
+ 444:CANopen/301/CO_driver.h **** /** @} */ /* CO_CAN_ERR_status_t */
+ 445:CANopen/301/CO_driver.h **** 
+ 446:CANopen/301/CO_driver.h **** /**
+ 447:CANopen/301/CO_driver.h ****  * Return values of some CANopen functions. If function was executed successfully it returns 0 othe
+ 448:CANopen/301/CO_driver.h ****  */
+ 449:CANopen/301/CO_driver.h **** typedef enum {
+ 450:CANopen/301/CO_driver.h ****     CO_ERROR_NO = 0,                /**< Operation completed successfully */
+ 451:CANopen/301/CO_driver.h ****     CO_ERROR_ILLEGAL_ARGUMENT = -1, /**< Error in function arguments */
+ 452:CANopen/301/CO_driver.h ****     CO_ERROR_OUT_OF_MEMORY = -2,    /**< Memory allocation failed */
+ 453:CANopen/301/CO_driver.h ****     CO_ERROR_TIMEOUT = -3,          /**< Function timeout */
+ 454:CANopen/301/CO_driver.h ****     CO_ERROR_ILLEGAL_BAUDRATE = -4, /**< Illegal baudrate passed to function CO_CANmodule_init() */
+ 455:CANopen/301/CO_driver.h ****     CO_ERROR_RX_OVERFLOW = -5,      /**< Previous message was not processed yet */
+ 456:CANopen/301/CO_driver.h ****     CO_ERROR_RX_PDO_OVERFLOW = -6,  /**< previous PDO was not processed yet */
+ 457:CANopen/301/CO_driver.h ****     CO_ERROR_RX_MSG_LENGTH = -7,    /**< Wrong receive message length */
+ 458:CANopen/301/CO_driver.h ****     CO_ERROR_RX_PDO_LENGTH = -8,    /**< Wrong receive PDO length */
+ 459:CANopen/301/CO_driver.h ****     CO_ERROR_TX_OVERFLOW = -9,      /**< Previous message is still waiting, buffer full */
+ 460:CANopen/301/CO_driver.h ****     CO_ERROR_TX_PDO_WINDOW = -10,   /**< Synchronous TPDO is outside window */
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 19
+
+
+ 461:CANopen/301/CO_driver.h ****     CO_ERROR_TX_UNCONFIGURED = -11, /**< Transmit buffer was not configured properly */
+ 462:CANopen/301/CO_driver.h ****     CO_ERROR_OD_PARAMETERS = -12,   /**< Error in Object Dictionary parameters */
+ 463:CANopen/301/CO_driver.h ****     CO_ERROR_DATA_CORRUPT = -13,    /**< Stored data are corrupt */
+ 464:CANopen/301/CO_driver.h ****     CO_ERROR_CRC = -14,             /**< CRC does not match */
+ 465:CANopen/301/CO_driver.h ****     CO_ERROR_TX_BUSY = -15,         /**< Sending rejected because driver is busy. Try again */
+ 466:CANopen/301/CO_driver.h ****     CO_ERROR_WRONG_NMT_STATE = -16, /**< Command can't be processed in current state */
+ 467:CANopen/301/CO_driver.h ****     CO_ERROR_SYSCALL = -17,         /**< Syscall failed */
+ 468:CANopen/301/CO_driver.h ****     CO_ERROR_INVALID_STATE = -18,   /**< Driver not ready */
+ 469:CANopen/301/CO_driver.h ****     CO_ERROR_NODE_ID_UNCONFIGURED_LSS =
+ 470:CANopen/301/CO_driver.h ****         -19 /**< Node-id is in LSS unconfigured state. If objects are handled properly, this may no
+ 471:CANopen/301/CO_driver.h **** } CO_ReturnError_t;
+ 472:CANopen/301/CO_driver.h **** 
+ 473:CANopen/301/CO_driver.h **** /**
+ 474:CANopen/301/CO_driver.h ****  * Request CAN configuration (stopped) mode and *wait* until it is set.
+ 475:CANopen/301/CO_driver.h ****  *
+ 476:CANopen/301/CO_driver.h ****  * @param CANptr Pointer to CAN device
+ 477:CANopen/301/CO_driver.h ****  */
+ 478:CANopen/301/CO_driver.h **** void CO_CANsetConfigurationMode(void* CANptr);
+ 479:CANopen/301/CO_driver.h **** 
+ 480:CANopen/301/CO_driver.h **** /**
+ 481:CANopen/301/CO_driver.h ****  * Request CAN normal (operational) mode and *wait* until it is set.
+ 482:CANopen/301/CO_driver.h ****  *
+ 483:CANopen/301/CO_driver.h ****  * @param CANmodule CO_CANmodule_t object.
+ 484:CANopen/301/CO_driver.h ****  */
+ 485:CANopen/301/CO_driver.h **** void CO_CANsetNormalMode(CO_CANmodule_t* CANmodule);
+ 486:CANopen/301/CO_driver.h **** 
+ 487:CANopen/301/CO_driver.h **** /**
+ 488:CANopen/301/CO_driver.h ****  * Initialize CAN module object.
+ 489:CANopen/301/CO_driver.h ****  *
+ 490:CANopen/301/CO_driver.h ****  * Function must be called in the communication reset section. CAN module must be in Configuration 
+ 491:CANopen/301/CO_driver.h ****  *
+ 492:CANopen/301/CO_driver.h ****  * @param CANmodule This object will be initialized.
+ 493:CANopen/301/CO_driver.h ****  * @param CANptr Pointer to CAN device.
+ 494:CANopen/301/CO_driver.h ****  * @param rxArray Array for handling received CAN messages
+ 495:CANopen/301/CO_driver.h ****  * @param rxSize Size of the above array. Must be equal to number of receiving CAN objects.
+ 496:CANopen/301/CO_driver.h ****  * @param txArray Array for handling transmitting CAN messages
+ 497:CANopen/301/CO_driver.h ****  * @param txSize Size of the above array. Must be equal to number of transmitting CAN objects.
+ 498:CANopen/301/CO_driver.h ****  * @param CANbitRate Valid values are (in kbps): 10, 20, 50, 125, 250, 500, 800, 1000. If value is 
+ 499:CANopen/301/CO_driver.h ****  * defaults to 125.
+ 500:CANopen/301/CO_driver.h ****  *
+ 501:CANopen/301/CO_driver.h ****  * Return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
+ 502:CANopen/301/CO_driver.h ****  */
+ 503:CANopen/301/CO_driver.h **** CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t* CANmodule, void* CANptr, CO_CANrx_t rxArray[], u
+ 504:CANopen/301/CO_driver.h ****                                    CO_CANtx_t txArray[], uint16_t txSize, uint16_t CANbitRate);
+ 505:CANopen/301/CO_driver.h **** 
+ 506:CANopen/301/CO_driver.h **** /**
+ 507:CANopen/301/CO_driver.h ****  * Switch off CANmodule. Call at program exit.
+ 508:CANopen/301/CO_driver.h ****  *
+ 509:CANopen/301/CO_driver.h ****  * @param CANmodule CAN module object.
+ 510:CANopen/301/CO_driver.h ****  */
+ 511:CANopen/301/CO_driver.h **** void CO_CANmodule_disable(CO_CANmodule_t* CANmodule);
+ 512:CANopen/301/CO_driver.h **** 
+ 513:CANopen/301/CO_driver.h **** /**
+ 514:CANopen/301/CO_driver.h ****  * Configure CAN message receive buffer.
+ 515:CANopen/301/CO_driver.h ****  *
+ 516:CANopen/301/CO_driver.h ****  * Function configures specific CAN receive buffer. It sets CAN identifier and connects buffer with
+ 517:CANopen/301/CO_driver.h ****  * Function must be called for each member in _rxArray_ from CO_CANmodule_t.
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 20
+
+
+ 518:CANopen/301/CO_driver.h ****  *
+ 519:CANopen/301/CO_driver.h ****  * @param CANmodule This object.
+ 520:CANopen/301/CO_driver.h ****  * @param index Index of the specific buffer in _rxArray_.
+ 521:CANopen/301/CO_driver.h ****  * @param ident 11-bit standard CAN Identifier. If two or more CANrx buffers have the same _ident_,
+ 522:CANopen/301/CO_driver.h ****  * lowest _index_ has precedence and other CANrx buffers will be ignored.
+ 523:CANopen/301/CO_driver.h ****  * @param mask 11-bit mask for identifier. Most usually set to 0x7FF. Received message (rcvMsg) wil
+ 524:CANopen/301/CO_driver.h ****  * following condition is true: (((rcvMsgId ^ ident) & mask) == 0).
+ 525:CANopen/301/CO_driver.h ****  * @param rtr If true, 'Remote Transmit Request' messages will be accepted.
+ 526:CANopen/301/CO_driver.h ****  * @param object CANopen object, to which buffer is connected. It will be used as an argument to CA
+ 527:CANopen/301/CO_driver.h ****  * type is (void), CANrx_callback will change its type back to the correct object type.
+ 528:CANopen/301/CO_driver.h ****  * @param CANrx_callback Pointer to function, which will be called, if received CAN message matches
+ 529:CANopen/301/CO_driver.h ****  * must be fast function.
+ 530:CANopen/301/CO_driver.h ****  *
+ 531:CANopen/301/CO_driver.h ****  * Return #CO_ReturnError_t: CO_ERROR_NO CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY (not e
+ 532:CANopen/301/CO_driver.h ****  * configuration).
+ 533:CANopen/301/CO_driver.h ****  */
+ 534:CANopen/301/CO_driver.h **** CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, uint
+ 535:CANopen/301/CO_driver.h ****                                     bool_t rtr, void* object, void (*CANrx_callback)(void* object, 
+ 536:CANopen/301/CO_driver.h **** 
+ 537:CANopen/301/CO_driver.h **** /**
+ 538:CANopen/301/CO_driver.h ****  * Configure CAN message transmit buffer.
+ 539:CANopen/301/CO_driver.h ****  *
+ 540:CANopen/301/CO_driver.h ****  * Function configures specific CAN transmit buffer. Function must be called for each member in _tx
+ 541:CANopen/301/CO_driver.h ****  * CO_CANmodule_t.
+ 542:CANopen/301/CO_driver.h ****  *
+ 543:CANopen/301/CO_driver.h ****  * @param CANmodule This object.
+ 544:CANopen/301/CO_driver.h ****  * @param index Index of the specific buffer in _txArray_.
+ 545:CANopen/301/CO_driver.h ****  * @param ident 11-bit standard CAN Identifier.
+ 546:CANopen/301/CO_driver.h ****  * @param rtr If true, 'Remote Transmit Request' messages will be transmitted.
+ 547:CANopen/301/CO_driver.h ****  * @param noOfBytes Length of CAN message in bytes (0 to 8 bytes).
+ 548:CANopen/301/CO_driver.h ****  * @param syncFlag This flag bit is used for synchronous TPDO messages. If it is set, message will 
+ 549:CANopen/301/CO_driver.h ****  * current time is outside synchronous window.
+ 550:CANopen/301/CO_driver.h ****  *
+ 551:CANopen/301/CO_driver.h ****  * @return Pointer to CAN transmit message buffer. 8 bytes data array inside buffer should be writt
+ 552:CANopen/301/CO_driver.h ****  * CO_CANsend() function is called. Zero is returned in case of wrong arguments.
+ 553:CANopen/301/CO_driver.h ****  */
+ 554:CANopen/301/CO_driver.h **** CO_CANtx_t* CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, bool_t rt
+ 555:CANopen/301/CO_driver.h ****                                bool_t syncFlag);
+ 556:CANopen/301/CO_driver.h **** 
+ 557:CANopen/301/CO_driver.h **** /**
+ 558:CANopen/301/CO_driver.h ****  * Send CAN message.
+ 559:CANopen/301/CO_driver.h ****  *
+ 560:CANopen/301/CO_driver.h ****  * @param CANmodule This object.
+ 561:CANopen/301/CO_driver.h ****  * @param buffer Pointer to transmit buffer, returned by CO_CANtxBufferInit(). Data bytes must be w
+ 562:CANopen/301/CO_driver.h ****  * before function call.
+ 563:CANopen/301/CO_driver.h ****  *
+ 564:CANopen/301/CO_driver.h ****  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_TX_OVERFLOW or CO_ERROR_TX_PDO_WINDOW (Synchron
+ 565:CANopen/301/CO_driver.h ****  * window).
+ 566:CANopen/301/CO_driver.h ****  */
+ 567:CANopen/301/CO_driver.h **** CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer);
+ 568:CANopen/301/CO_driver.h **** 
+ 569:CANopen/301/CO_driver.h **** /**
+ 570:CANopen/301/CO_driver.h ****  * Clear all synchronous TPDOs from CAN module transmit buffers.
+ 571:CANopen/301/CO_driver.h ****  *
+ 572:CANopen/301/CO_driver.h ****  * CANopen allows synchronous PDO communication only inside time between SYNC message and SYNC Wind
+ 573:CANopen/301/CO_driver.h ****  * outside this window, new synchronous PDOs must not be sent and all pending sync TPDOs, which may
+ 574:CANopen/301/CO_driver.h ****  * buffers, may optionally be cleared.
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 21
+
+
+ 575:CANopen/301/CO_driver.h ****  *
+ 576:CANopen/301/CO_driver.h ****  * This function checks (and aborts transmission if necessary) CAN TX buffers when it is called. Fu
+ 577:CANopen/301/CO_driver.h ****  * called by the stack in the moment, when SYNC time was just passed out of synchronous window.
+ 578:CANopen/301/CO_driver.h ****  *
+ 579:CANopen/301/CO_driver.h ****  * @param CANmodule This object.
+ 580:CANopen/301/CO_driver.h ****  */
+ 581:CANopen/301/CO_driver.h **** void CO_CANclearPendingSyncPDOs(CO_CANmodule_t* CANmodule);
+ 582:CANopen/301/CO_driver.h **** 
+ 583:CANopen/301/CO_driver.h **** /**
+ 584:CANopen/301/CO_driver.h ****  * Process can module - verify CAN errors
+ 585:CANopen/301/CO_driver.h ****  *
+ 586:CANopen/301/CO_driver.h ****  * Function must be called cyclically. It should calculate CANerrorStatus bitfield for CAN errors d
+ 587:CANopen/301/CO_driver.h ****  * CO_CAN_ERR_status_t.
+ 588:CANopen/301/CO_driver.h ****  *
+ 589:CANopen/301/CO_driver.h ****  * @param CANmodule This object.
+ 590:CANopen/301/CO_driver.h ****  */
+ 591:CANopen/301/CO_driver.h **** void CO_CANmodule_process(CO_CANmodule_t* CANmodule);
+ 592:CANopen/301/CO_driver.h **** 
+ 593:CANopen/301/CO_driver.h **** /**
+ 594:CANopen/301/CO_driver.h ****  * Get uint8_t value from memory buffer
+ 595:CANopen/301/CO_driver.h ****  *
+ 596:CANopen/301/CO_driver.h ****  * @param buf Memory buffer to get value from.
+ 597:CANopen/301/CO_driver.h ****  *
+ 598:CANopen/301/CO_driver.h ****  * @return Value
+ 599:CANopen/301/CO_driver.h ****  */
+ 600:CANopen/301/CO_driver.h **** static inline uint8_t
+ 601:CANopen/301/CO_driver.h **** CO_getUint8(const void* buf) {
+ 602:CANopen/301/CO_driver.h ****     uint8_t value;
+ 603:CANopen/301/CO_driver.h ****     (void)memmove((void*)&value, buf, sizeof(value));
+ 604:CANopen/301/CO_driver.h ****     return value;
+ 605:CANopen/301/CO_driver.h **** }
+ 606:CANopen/301/CO_driver.h **** 
+ 607:CANopen/301/CO_driver.h **** /** Get uint16_t value from memory buffer, see @ref CO_getUint8 */
+ 608:CANopen/301/CO_driver.h **** static inline uint16_t
+ 609:CANopen/301/CO_driver.h **** CO_getUint16(const void* buf) {
+ 610:CANopen/301/CO_driver.h ****     uint16_t value;
+ 611:CANopen/301/CO_driver.h ****     (void)memmove((void*)&value, buf, sizeof(value));
+ 612:CANopen/301/CO_driver.h ****     return value;
+ 613:CANopen/301/CO_driver.h **** }
+ 614:CANopen/301/CO_driver.h **** 
+ 615:CANopen/301/CO_driver.h **** /** Get uint32_t value from memory buffer, see @ref CO_getUint8 */
+ 616:CANopen/301/CO_driver.h **** static inline uint32_t
+ 617:CANopen/301/CO_driver.h **** CO_getUint32(const void* buf) {
+ 317              		.loc 2 617 1 view .LVU89
+ 318              	.LBB21:
+ 618:CANopen/301/CO_driver.h ****     uint32_t value;
+ 319              		.loc 2 618 5 view .LVU90
+ 619:CANopen/301/CO_driver.h ****     (void)memmove((void*)&value, buf, sizeof(value));
+ 320              		.loc 2 619 5 view .LVU91
+ 321              		.loc 2 619 11 is_stmt 0 view .LVU92
+ 322 0020 2268     		ldr	r2, [r4]	@ unaligned
+ 323              	.LVL23:
+ 620:CANopen/301/CO_driver.h ****     return value;
+ 324              		.loc 2 620 5 is_stmt 1 view .LVU93
+ 325              		.loc 2 620 5 is_stmt 0 view .LVU94
+ 326              	.LBE21:
+ 327              	.LBE20:
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 22
+
+
+  92:CANopen/301/CO_HBconsumer.c ****     uint16_t consumer_time = (uint16_t)(val & 0xFFFFU);
+ 328              		.loc 1 92 5 is_stmt 1 view .LVU95
+  93:CANopen/301/CO_HBconsumer.c ****     CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, stream->subIndex - 1U, nodeId, consumer_
+ 329              		.loc 1 93 5 view .LVU96
+  94:CANopen/301/CO_HBconsumer.c ****     if (ret != CO_ERROR_NO) {
+ 330              		.loc 1 94 5 view .LVU97
+  94:CANopen/301/CO_HBconsumer.c ****     if (ret != CO_ERROR_NO) {
+ 331              		.loc 1 94 28 is_stmt 0 view .LVU98
+ 332 0022 0139     		subs	r1, r1, #1
+ 333 0024 93B2     		uxth	r3, r2
+ 334 0026 C2F30742 		ubfx	r2, r2, #16, #8
+ 335              	.LVL24:
+  94:CANopen/301/CO_HBconsumer.c ****     if (ret != CO_ERROR_NO) {
+ 336              		.loc 1 94 28 view .LVU99
+ 337 002a C9B2     		uxtb	r1, r1
+ 338 002c FFF7FEFF 		bl	CO_HBconsumer_initEntry
+ 339              	.LVL25:
+  95:CANopen/301/CO_HBconsumer.c ****         return ODR_PAR_INCOMPAT;
+ 340              		.loc 1 95 5 is_stmt 1 view .LVU100
+  95:CANopen/301/CO_HBconsumer.c ****         return ODR_PAR_INCOMPAT;
+ 341              		.loc 1 95 8 is_stmt 0 view .LVU101
+ 342 0030 90B9     		cbnz	r0, .L26
+ 100:CANopen/301/CO_HBconsumer.c **** }
+ 343              		.loc 1 100 5 is_stmt 1 view .LVU102
+ 100:CANopen/301/CO_HBconsumer.c **** }
+ 344              		.loc 1 100 12 is_stmt 0 view .LVU103
+ 345 0032 3346     		mov	r3, r6
+ 346 0034 3A46     		mov	r2, r7
+ 347 0036 2146     		mov	r1, r4
+ 348 0038 2846     		mov	r0, r5
+ 349              	.LVL26:
+ 100:CANopen/301/CO_HBconsumer.c **** }
+ 350              		.loc 1 100 12 view .LVU104
+ 351 003a FFF7FEFF 		bl	OD_writeOriginal
+ 352              	.LVL27:
+ 353 003e 04E0     		b	.L19
+ 354              	.LVL28:
+ 355              	.L20:
+ 356              	.LCFI5:
+ 357              		.cfi_def_cfa_offset 0
+ 358              		.cfi_restore 3
+ 359              		.cfi_restore 4
+ 360              		.cfi_restore 5
+ 361              		.cfi_restore 6
+ 362              		.cfi_restore 7
+ 363              		.cfi_restore 14
+  81:CANopen/301/CO_HBconsumer.c ****     }
+ 364              		.loc 1 81 16 view .LVU105
+ 365 0040 0920     		movs	r0, #9
+ 366              	.LVL29:
+ 101:CANopen/301/CO_HBconsumer.c **** #endif
+ 367              		.loc 1 101 1 view .LVU106
+ 368 0042 7047     		bx	lr
+ 369              	.LVL30:
+ 370              	.L21:
+ 371              	.LCFI6:
+ 372              		.cfi_def_cfa_offset 24
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 23
+
+
+ 373              		.cfi_offset 3, -24
+ 374              		.cfi_offset 4, -20
+ 375              		.cfi_offset 5, -16
+ 376              		.cfi_offset 6, -12
+ 377              		.cfi_offset 7, -8
+ 378              		.cfi_offset 14, -4
+  88:CANopen/301/CO_HBconsumer.c ****     }
+ 379              		.loc 1 88 16 view .LVU107
+ 380 0044 0920     		movs	r0, #9
+ 381              	.LVL31:
+  88:CANopen/301/CO_HBconsumer.c ****     }
+ 382              		.loc 1 88 16 view .LVU108
+ 383 0046 00E0     		b	.L19
+ 384              	.LVL32:
+ 385              	.L22:
+  88:CANopen/301/CO_HBconsumer.c ****     }
+ 386              		.loc 1 88 16 view .LVU109
+ 387 0048 0920     		movs	r0, #9
+ 388              	.LVL33:
+ 389              	.L19:
+ 101:CANopen/301/CO_HBconsumer.c **** #endif
+ 390              		.loc 1 101 1 view .LVU110
+ 391 004a F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 392              	.LVL34:
+ 393              	.L23:
+  88:CANopen/301/CO_HBconsumer.c ****     }
+ 394              		.loc 1 88 16 view .LVU111
+ 395 004c 0920     		movs	r0, #9
+ 396              	.LVL35:
+  88:CANopen/301/CO_HBconsumer.c ****     }
+ 397              		.loc 1 88 16 view .LVU112
+ 398 004e FCE7     		b	.L19
+ 399              	.LVL36:
+ 400              	.L24:
+  88:CANopen/301/CO_HBconsumer.c ****     }
+ 401              		.loc 1 88 16 view .LVU113
+ 402 0050 0920     		movs	r0, #9
+ 403              	.LVL37:
+  88:CANopen/301/CO_HBconsumer.c ****     }
+ 404              		.loc 1 88 16 view .LVU114
+ 405 0052 FAE7     		b	.L19
+ 406              	.LVL38:
+ 407              	.L25:
+  88:CANopen/301/CO_HBconsumer.c ****     }
+ 408              		.loc 1 88 16 view .LVU115
+ 409 0054 0920     		movs	r0, #9
+ 410              	.LVL39:
+  88:CANopen/301/CO_HBconsumer.c ****     }
+ 411              		.loc 1 88 16 view .LVU116
+ 412 0056 F8E7     		b	.L19
+ 413              	.LVL40:
+ 414              	.L26:
+  96:CANopen/301/CO_HBconsumer.c ****     }
+ 415              		.loc 1 96 16 view .LVU117
+ 416 0058 0820     		movs	r0, #8
+ 417              	.LVL41:
+  96:CANopen/301/CO_HBconsumer.c ****     }
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 24
+
+
+ 418              		.loc 1 96 16 view .LVU118
+ 419 005a F6E7     		b	.L19
+ 420              		.cfi_endproc
+ 421              	.LFE37:
+ 423              		.section	.text.CO_HBconsumer_init,"ax",%progbits
+ 424              		.align	1
+ 425              		.global	CO_HBconsumer_init
+ 426              		.syntax unified
+ 427              		.thumb
+ 428              		.thumb_func
+ 430              	CO_HBconsumer_init:
+ 431              	.LVL42:
+ 432              	.LFB38:
+ 106:CANopen/301/CO_HBconsumer.c ****     ODR_t odRet;
+ 433              		.loc 1 106 120 is_stmt 1 view -0
+ 434              		.cfi_startproc
+ 435              		@ args = 16, pretend = 0, frame = 8
+ 436              		@ frame_needed = 0, uses_anonymous_args = 0
+ 106:CANopen/301/CO_HBconsumer.c ****     ODR_t odRet;
+ 437              		.loc 1 106 120 is_stmt 0 view .LVU120
+ 438 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 439              	.LCFI7:
+ 440              		.cfi_def_cfa_offset 32
+ 441              		.cfi_offset 4, -32
+ 442              		.cfi_offset 5, -28
+ 443              		.cfi_offset 6, -24
+ 444              		.cfi_offset 7, -20
+ 445              		.cfi_offset 8, -16
+ 446              		.cfi_offset 9, -12
+ 447              		.cfi_offset 10, -8
+ 448              		.cfi_offset 14, -4
+ 449 0004 84B0     		sub	sp, sp, #16
+ 450              	.LCFI8:
+ 451              		.cfi_def_cfa_offset 48
+ 452 0006 0C9F     		ldr	r7, [sp, #48]
+ 453 0008 DDF834A0 		ldr	r10, [sp, #52]
+ 454 000c DDF83C80 		ldr	r8, [sp, #60]
+ 107:CANopen/301/CO_HBconsumer.c **** 
+ 455              		.loc 1 107 5 is_stmt 1 view .LVU121
+ 110:CANopen/301/CO_HBconsumer.c ****         || (CANdevRx == NULL)) {
+ 456              		.loc 1 110 5 view .LVU122
+ 110:CANopen/301/CO_HBconsumer.c ****         || (CANdevRx == NULL)) {
+ 457              		.loc 1 110 8 is_stmt 0 view .LVU123
+ 458 0010 0028     		cmp	r0, #0
+ 459 0012 5AD0     		beq	.L40
+ 460 0014 8946     		mov	r9, r1
+ 461 0016 1546     		mov	r5, r2
+ 462 0018 1C46     		mov	r4, r3
+ 463 001a 0646     		mov	r6, r0
+ 110:CANopen/301/CO_HBconsumer.c ****         || (CANdevRx == NULL)) {
+ 464              		.loc 1 110 26 discriminator 1 view .LVU124
+ 465 001c 0029     		cmp	r1, #0
+ 466 001e 57D0     		beq	.L41
+ 110:CANopen/301/CO_HBconsumer.c ****         || (CANdevRx == NULL)) {
+ 467              		.loc 1 110 42 discriminator 2 view .LVU125
+ 468 0020 002A     		cmp	r2, #0
+ 469 0022 58D0     		beq	.L42
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 25
+
+
+ 110:CANopen/301/CO_HBconsumer.c ****         || (CANdevRx == NULL)) {
+ 470              		.loc 1 110 70 discriminator 3 view .LVU126
+ 471 0024 002F     		cmp	r7, #0
+ 472 0026 59D0     		beq	.L43
+ 111:CANopen/301/CO_HBconsumer.c ****         return CO_ERROR_ILLEGAL_ARGUMENT;
+ 473              		.loc 1 111 9 view .LVU127
+ 474 0028 BAF1000F 		cmp	r10, #0
+ 475 002c 59D0     		beq	.L44
+ 116:CANopen/301/CO_HBconsumer.c ****     HBcons->em = em;
+ 476              		.loc 1 116 5 is_stmt 1 view .LVU128
+ 116:CANopen/301/CO_HBconsumer.c ****     HBcons->em = em;
+ 477              		.loc 1 116 11 is_stmt 0 view .LVU129
+ 478 002e 3022     		movs	r2, #48
+ 479              	.LVL43:
+ 116:CANopen/301/CO_HBconsumer.c ****     HBcons->em = em;
+ 480              		.loc 1 116 11 view .LVU130
+ 481 0030 0021     		movs	r1, #0
+ 482              	.LVL44:
+ 116:CANopen/301/CO_HBconsumer.c ****     HBcons->em = em;
+ 483              		.loc 1 116 11 view .LVU131
+ 484 0032 FFF7FEFF 		bl	memset
+ 485              	.LVL45:
+ 117:CANopen/301/CO_HBconsumer.c ****     HBcons->monitoredNodes = monitoredNodes;
+ 486              		.loc 1 117 5 is_stmt 1 view .LVU132
+ 117:CANopen/301/CO_HBconsumer.c ****     HBcons->monitoredNodes = monitoredNodes;
+ 487              		.loc 1 117 16 is_stmt 0 view .LVU133
+ 488 0036 C6F80090 		str	r9, [r6]
+ 118:CANopen/301/CO_HBconsumer.c ****     HBcons->CANdevRx = CANdevRx;
+ 489              		.loc 1 118 5 is_stmt 1 view .LVU134
+ 118:CANopen/301/CO_HBconsumer.c ****     HBcons->CANdevRx = CANdevRx;
+ 490              		.loc 1 118 28 is_stmt 0 view .LVU135
+ 491 003a 7560     		str	r5, [r6, #4]
+ 119:CANopen/301/CO_HBconsumer.c ****     HBcons->CANdevRxIdxStart = CANdevRxIdxStart;
+ 492              		.loc 1 119 5 is_stmt 1 view .LVU136
+ 119:CANopen/301/CO_HBconsumer.c ****     HBcons->CANdevRxIdxStart = CANdevRxIdxStart;
+ 493              		.loc 1 119 22 is_stmt 0 view .LVU137
+ 494 003c C6F818A0 		str	r10, [r6, #24]
+ 120:CANopen/301/CO_HBconsumer.c **** 
+ 495              		.loc 1 120 5 is_stmt 1 view .LVU138
+ 120:CANopen/301/CO_HBconsumer.c **** 
+ 496              		.loc 1 120 30 is_stmt 0 view .LVU139
+ 497 0040 BDF83830 		ldrh	r3, [sp, #56]
+ 498 0044 B383     		strh	r3, [r6, #28]	@ movhi
+ 123:CANopen/301/CO_HBconsumer.c ****                                          ? (OD_1016_HBcons->subEntriesCount - 1U)
+ 499              		.loc 1 123 5 is_stmt 1 view .LVU140
+ 123:CANopen/301/CO_HBconsumer.c ****                                          ? (OD_1016_HBcons->subEntriesCount - 1U)
+ 500              		.loc 1 123 54 is_stmt 0 view .LVU141
+ 501 0046 BB78     		ldrb	r3, [r7, #2]	@ zero_extendqisi2
+ 123:CANopen/301/CO_HBconsumer.c ****                                          ? (OD_1016_HBcons->subEntriesCount - 1U)
+ 502              		.loc 1 123 72 view .LVU142
+ 503 0048 013B     		subs	r3, r3, #1
+ 125:CANopen/301/CO_HBconsumer.c **** 
+ 504              		.loc 1 125 42 view .LVU143
+ 505 004a 9C42     		cmp	r4, r3
+ 506 004c 28BF     		it	cs
+ 507 004e 1C46     		movcs	r4, r3
+ 508              	.LVL46:
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 26
+
+
+ 123:CANopen/301/CO_HBconsumer.c ****                                          ? (OD_1016_HBcons->subEntriesCount - 1U)
+ 509              		.loc 1 123 36 view .LVU144
+ 510 0050 3472     		strb	r4, [r6, #8]
+ 127:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 511              		.loc 1 127 5 is_stmt 1 view .LVU145
+ 512              	.LBB22:
+ 127:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 513              		.loc 1 127 10 view .LVU146
+ 514              	.LVL47:
+ 127:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 515              		.loc 1 127 18 is_stmt 0 view .LVU147
+ 516 0052 0025     		movs	r5, #0
+ 517              	.LVL48:
+ 127:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 518              		.loc 1 127 5 view .LVU148
+ 519 0054 0CE0     		b	.L33
+ 520              	.LVL49:
+ 521              	.L47:
+ 522              	.LBB23:
+ 131:CANopen/301/CO_HBconsumer.c ****                 *errInfo = OD_getIndex(OD_1016_HBcons);
+ 523              		.loc 1 131 13 is_stmt 1 view .LVU149
+ 131:CANopen/301/CO_HBconsumer.c ****                 *errInfo = OD_getIndex(OD_1016_HBcons);
+ 524              		.loc 1 131 16 is_stmt 0 view .LVU150
+ 525 0056 B8F1000F 		cmp	r8, #0
+ 526 005a 02D0     		beq	.L35
+ 132:CANopen/301/CO_HBconsumer.c ****             }
+ 527              		.loc 1 132 17 is_stmt 1 view .LVU151
+ 528              	.LVL50:
+ 529              	.LBB24:
+ 530              	.LBI24:
+ 531              		.file 3 "CANopen/301/CO_ODinterface.h"
+   1:CANopen/301/CO_ODinterface.h **** /**
+   2:CANopen/301/CO_ODinterface.h ****  * CANopen Object Dictionary interface
+   3:CANopen/301/CO_ODinterface.h ****  *
+   4:CANopen/301/CO_ODinterface.h ****  * @file        CO_ODinterface.h
+   5:CANopen/301/CO_ODinterface.h ****  * @ingroup     CO_ODinterface
+   6:CANopen/301/CO_ODinterface.h ****  * @author      Janez Paternoster
+   7:CANopen/301/CO_ODinterface.h ****  * @copyright   2020 Janez Paternoster
+   8:CANopen/301/CO_ODinterface.h ****  *
+   9:CANopen/301/CO_ODinterface.h ****  * This file is part of <https://github.com/CANopenNode/CANopenNode>, a CANopen Stack.
+  10:CANopen/301/CO_ODinterface.h ****  *
+  11:CANopen/301/CO_ODinterface.h ****  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+  12:CANopen/301/CO_ODinterface.h ****  * file except in compliance with the License. You may obtain a copy of the License at
+  13:CANopen/301/CO_ODinterface.h ****  *
+  14:CANopen/301/CO_ODinterface.h ****  *     http://www.apache.org/licenses/LICENSE-2.0
+  15:CANopen/301/CO_ODinterface.h ****  *
+  16:CANopen/301/CO_ODinterface.h ****  * Unless required by applicable law or agreed to in writing, software distributed under the Licens
+  17:CANopen/301/CO_ODinterface.h ****  * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+  18:CANopen/301/CO_ODinterface.h ****  * See the License for the specific language governing permissions and limitations under the Licens
+  19:CANopen/301/CO_ODinterface.h ****  */
+  20:CANopen/301/CO_ODinterface.h **** 
+  21:CANopen/301/CO_ODinterface.h **** #ifndef CO_OD_INTERFACE_H
+  22:CANopen/301/CO_ODinterface.h **** #define CO_OD_INTERFACE_H
+  23:CANopen/301/CO_ODinterface.h **** 
+  24:CANopen/301/CO_ODinterface.h **** #include "301/CO_driver.h"
+  25:CANopen/301/CO_ODinterface.h **** 
+  26:CANopen/301/CO_ODinterface.h **** #ifdef __cplusplus
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 27
+
+
+  27:CANopen/301/CO_ODinterface.h **** extern "C" {
+  28:CANopen/301/CO_ODinterface.h **** #endif
+  29:CANopen/301/CO_ODinterface.h **** 
+  30:CANopen/301/CO_ODinterface.h **** /**
+  31:CANopen/301/CO_ODinterface.h ****  * @defgroup CO_ODinterface OD interface
+  32:CANopen/301/CO_ODinterface.h ****  * CANopen Object Dictionary interface.
+  33:CANopen/301/CO_ODinterface.h ****  *
+  34:CANopen/301/CO_ODinterface.h ****  * @ingroup CO_CANopen_301
+  35:CANopen/301/CO_ODinterface.h ****  * @{
+  36:CANopen/301/CO_ODinterface.h ****  * See @ref md_doc_2objectDictionary
+  37:CANopen/301/CO_ODinterface.h ****  */
+  38:CANopen/301/CO_ODinterface.h **** 
+  39:CANopen/301/CO_ODinterface.h **** #ifndef CO_OD_OWN_TYPES
+  40:CANopen/301/CO_ODinterface.h **** typedef uint32_t OD_size_t; /**< Variable of type OD_size_t contains data length in bytes of OD var
+  41:CANopen/301/CO_ODinterface.h **** typedef uint8_t OD_attr_t;  /**< Type (and size) of Object Dictionary attribute */
+  42:CANopen/301/CO_ODinterface.h **** #endif
+  43:CANopen/301/CO_ODinterface.h **** 
+  44:CANopen/301/CO_ODinterface.h **** #ifndef OD_FLAGS_PDO_SIZE
+  45:CANopen/301/CO_ODinterface.h **** #define OD_FLAGS_PDO_SIZE 4U /**< Size of of flagsPDO variable inside @ref OD_extension_t, from 0 t
+  46:CANopen/301/CO_ODinterface.h **** #endif
+  47:CANopen/301/CO_ODinterface.h **** 
+  48:CANopen/301/CO_ODinterface.h **** #ifndef CO_PROGMEM
+  49:CANopen/301/CO_ODinterface.h **** /** Modifier for OD objects. This is large amount of data and is specified in Object Dictionary (OD
+  50:CANopen/301/CO_ODinterface.h **** #define CO_PROGMEM const
+  51:CANopen/301/CO_ODinterface.h **** #endif
+  52:CANopen/301/CO_ODinterface.h **** 
+  53:CANopen/301/CO_ODinterface.h **** /**
+  54:CANopen/301/CO_ODinterface.h ****  * Common DS301 object dictionary entries.
+  55:CANopen/301/CO_ODinterface.h ****  */
+  56:CANopen/301/CO_ODinterface.h **** typedef enum {
+  57:CANopen/301/CO_ODinterface.h ****     OD_H1000_DEV_TYPE = 0x1000U,           /**< Device type */
+  58:CANopen/301/CO_ODinterface.h ****     OD_H1001_ERR_REG = 0x1001U,            /**< Error register */
+  59:CANopen/301/CO_ODinterface.h ****     OD_H1002_MANUF_STATUS_REG = 0x1002U,   /**< Manufacturer status register */
+  60:CANopen/301/CO_ODinterface.h ****     OD_H1003_PREDEF_ERR_FIELD = 0x1003U,   /**< Predefined error field */
+  61:CANopen/301/CO_ODinterface.h ****     OD_H1004_RSV = 0x1004U,                /**< Reserved */
+  62:CANopen/301/CO_ODinterface.h ****     OD_H1005_COBID_SYNC = 0x1005U,         /**< Sync message cob-id */
+  63:CANopen/301/CO_ODinterface.h ****     OD_H1006_COMM_CYCL_PERIOD = 0x1006U,   /**< Communication cycle period */
+  64:CANopen/301/CO_ODinterface.h ****     OD_H1007_SYNC_WINDOW_LEN = 0x1007U,    /**< Sync windows length */
+  65:CANopen/301/CO_ODinterface.h ****     OD_H1008_MANUF_DEV_NAME = 0x1008U,     /**< Manufacturer device name */
+  66:CANopen/301/CO_ODinterface.h ****     OD_H1009_MANUF_HW_VERSION = 0x1009U,   /**< Manufacturer hardware version */
+  67:CANopen/301/CO_ODinterface.h ****     OD_H100A_MANUF_SW_VERSION = 0x100AU,   /**< Manufacturer software version */
+  68:CANopen/301/CO_ODinterface.h ****     OD_H100B_RSV = 0x100BU,                /**< Reserved */
+  69:CANopen/301/CO_ODinterface.h ****     OD_H100C_GUARD_TIME = 0x100CU,         /**< Guard time */
+  70:CANopen/301/CO_ODinterface.h ****     OD_H100D_LIFETIME_FACTOR = 0x100DU,    /**< Life time factor */
+  71:CANopen/301/CO_ODinterface.h ****     OD_H100E_RSV = 0x100EU,                /**< Reserved */
+  72:CANopen/301/CO_ODinterface.h ****     OD_H100F_RSV = 0x100FU,                /**< Reserved */
+  73:CANopen/301/CO_ODinterface.h ****     OD_H1010_STORE_PARAMETERS = 0x1010U,   /**< Store params in persistent mem. */
+  74:CANopen/301/CO_ODinterface.h ****     OD_H1011_RESTORE_DEFAULT = 0x1011U,    /**< Restore default parameters */
+  75:CANopen/301/CO_ODinterface.h ****     OD_H1012_COBID_TIME = 0x1012U,         /**< Timestamp message cob-id */
+  76:CANopen/301/CO_ODinterface.h ****     OD_H1013_HIGH_RES_TIMESTAMP = 0x1013U, /**< High resolution timestamp */
+  77:CANopen/301/CO_ODinterface.h ****     OD_H1014_COBID_EMERGENCY = 0x1014U,    /**< Emergency message cob-id */
+  78:CANopen/301/CO_ODinterface.h ****     OD_H1015_INHIBIT_TIME_EMCY = 0x1015U,  /**< Inhibit time emergency message */
+  79:CANopen/301/CO_ODinterface.h ****     OD_H1016_CONSUMER_HB_TIME = 0x1016U,   /**< Consumer heartbeat time */
+  80:CANopen/301/CO_ODinterface.h ****     OD_H1017_PRODUCER_HB_TIME = 0x1017U,   /**< Producer heartbeat time */
+  81:CANopen/301/CO_ODinterface.h ****     OD_H1018_IDENTITY_OBJECT = 0x1018U,    /**< Identity object */
+  82:CANopen/301/CO_ODinterface.h ****     OD_H1019_SYNC_CNT_OVERFLOW = 0x1019U,  /**< Sync counter overflow value */
+  83:CANopen/301/CO_ODinterface.h ****     OD_H1020_VERIFY_CONFIG = 0x1020U,      /**< Verify configuration */
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 28
+
+
+  84:CANopen/301/CO_ODinterface.h ****     OD_H1021_STORE_EDS = 0x1021U,          /**< Store EDS */
+  85:CANopen/301/CO_ODinterface.h ****     OD_H1022_STORE_FORMAT = 0x1022U,       /**< Store format */
+  86:CANopen/301/CO_ODinterface.h ****     OD_H1023_OS_CMD = 0x1023U,             /**< OS command */
+  87:CANopen/301/CO_ODinterface.h ****     OD_H1024_OS_CMD_MODE = 0x1024U,        /**< OS command mode */
+  88:CANopen/301/CO_ODinterface.h ****     OD_H1025_OS_DBG_INTERFACE = 0x1025U,   /**< OS debug interface */
+  89:CANopen/301/CO_ODinterface.h ****     OD_H1026_OS_PROMPT = 0x1026U,          /**< OS prompt */
+  90:CANopen/301/CO_ODinterface.h ****     OD_H1027_MODULE_LIST = 0x1027U,        /**< Module list */
+  91:CANopen/301/CO_ODinterface.h ****     OD_H1028_EMCY_CONSUMER = 0x1028U,      /**< Emergency consumer object */
+  92:CANopen/301/CO_ODinterface.h ****     OD_H1029_ERR_BEHAVIOR = 0x1029U,       /**< Error behaviour */
+  93:CANopen/301/CO_ODinterface.h ****     OD_H1200_SDO_SERVER_1_PARAM = 0x1200U, /**< SDO server parameter */
+  94:CANopen/301/CO_ODinterface.h ****     OD_H1280_SDO_CLIENT_1_PARAM = 0x1280U, /**< SDO client parameter */
+  95:CANopen/301/CO_ODinterface.h ****     OD_H1300_GFC_PARAM = 0x1300U,          /**< Global fail-safe command param */
+  96:CANopen/301/CO_ODinterface.h ****     OD_H1301_SRDO_1_PARAM = 0x1301U,       /**< SRDO communication parameter */
+  97:CANopen/301/CO_ODinterface.h ****     OD_H1381_SRDO_1_MAPPING = 0x1381U,     /**< SRDO mapping parameter */
+  98:CANopen/301/CO_ODinterface.h ****     OD_H13FE_SRDO_VALID = 0x13FEU,         /**< SRDO Configuration valid */
+  99:CANopen/301/CO_ODinterface.h ****     OD_H13FF_SRDO_CHECKSUM = 0x13FFU,      /**< SRDO configuration checksum */
+ 100:CANopen/301/CO_ODinterface.h ****     OD_H1400_RXPDO_1_PARAM = 0x1400U,      /**< RXPDO communication parameter */
+ 101:CANopen/301/CO_ODinterface.h ****     OD_H1600_RXPDO_1_MAPPING = 0x1600U,    /**< RXPDO mapping parameters */
+ 102:CANopen/301/CO_ODinterface.h ****     OD_H1800_TXPDO_1_PARAM = 0x1800U,      /**< TXPDO communication parameter */
+ 103:CANopen/301/CO_ODinterface.h ****     OD_H1A00_TXPDO_1_MAPPING = 0x1A00U,    /**< TXPDO mapping parameters */
+ 104:CANopen/301/CO_ODinterface.h **** } OD_ObjDicId_30x_t;
+ 105:CANopen/301/CO_ODinterface.h **** 
+ 106:CANopen/301/CO_ODinterface.h **** /**
+ 107:CANopen/301/CO_ODinterface.h ****  * Attributes (bit masks) for OD sub-object.
+ 108:CANopen/301/CO_ODinterface.h ****  */
+ 109:CANopen/301/CO_ODinterface.h **** typedef enum {
+ 110:CANopen/301/CO_ODinterface.h ****     ODA_SDO_R = 0x01U,  /**< SDO server may read from the variable */
+ 111:CANopen/301/CO_ODinterface.h ****     ODA_SDO_W = 0x02U,  /**< SDO server may write to the variable */
+ 112:CANopen/301/CO_ODinterface.h ****     ODA_SDO_RW = 0x03U, /**< SDO server may read from or write to the variable */
+ 113:CANopen/301/CO_ODinterface.h ****     ODA_TPDO = 0x04U,   /**< Variable is mappable into TPDO (can be read) */
+ 114:CANopen/301/CO_ODinterface.h ****     ODA_RPDO = 0x08U,   /**< Variable is mappable into RPDO (can be written) */
+ 115:CANopen/301/CO_ODinterface.h ****     ODA_TRPDO = 0x0CU,  /**< Variable is mappable into TPDO or RPDO */
+ 116:CANopen/301/CO_ODinterface.h ****     ODA_TSRDO = 0x10U,  /**< Variable is mappable into transmitting SRDO */
+ 117:CANopen/301/CO_ODinterface.h ****     ODA_RSRDO = 0x20U,  /**< Variable is mappable into receiving SRDO */
+ 118:CANopen/301/CO_ODinterface.h ****     ODA_TRSRDO = 0x30U, /**< Variable is mappable into tx or rx SRDO */
+ 119:CANopen/301/CO_ODinterface.h ****     ODA_MB = 0x40U,     /**< Variable is multi-byte ((u)int16_t to (u)int64_t) */
+ 120:CANopen/301/CO_ODinterface.h ****     ODA_STR = 0x80U     /**< Shorter value, than specified variable size, may be written to the var
+ 121:CANopen/301/CO_ODinterface.h ****                            fill remaining memory with zeroes. Attribute is used for VISIBLE_STRING 
+ 122:CANopen/301/CO_ODinterface.h **** } OD_attributes_t;
+ 123:CANopen/301/CO_ODinterface.h **** 
+ 124:CANopen/301/CO_ODinterface.h **** /**
+ 125:CANopen/301/CO_ODinterface.h ****  * Return codes from OD access functions.
+ 126:CANopen/301/CO_ODinterface.h ****  *
+ 127:CANopen/301/CO_ODinterface.h ****  * @ref OD_getSDOabCode() can be used to retrieve corresponding SDO abort code.
+ 128:CANopen/301/CO_ODinterface.h ****  */
+ 129:CANopen/301/CO_ODinterface.h **** typedef enum {
+ 130:CANopen/301/CO_ODinterface.h ****     /* !!!! WARNING !!!! If changing these values, change also OD_getSDOabCode() function! */
+ 131:CANopen/301/CO_ODinterface.h ****     ODR_PARTIAL = -1,        /**< Read/write is only partial, make more calls */
+ 132:CANopen/301/CO_ODinterface.h ****     ODR_OK = 0,              /**< SDO abort 0x00000000 - Read/write successfully finished */
+ 133:CANopen/301/CO_ODinterface.h ****     ODR_OUT_OF_MEM = 1,      /**< SDO abort 0x05040005 - Out of memory */
+ 134:CANopen/301/CO_ODinterface.h ****     ODR_UNSUPP_ACCESS = 2,   /**< SDO abort 0x06010000 - Unsupported access to an object */
+ 135:CANopen/301/CO_ODinterface.h ****     ODR_WRITEONLY = 3,       /**< SDO abort 0x06010001 - Attempt to read a write only object */
+ 136:CANopen/301/CO_ODinterface.h ****     ODR_READONLY = 4,        /**< SDO abort 0x06010002 - Attempt to write a read only object */
+ 137:CANopen/301/CO_ODinterface.h ****     ODR_IDX_NOT_EXIST = 5,   /**< SDO abort 0x06020000 - Object does not exist in the object dict. 
+ 138:CANopen/301/CO_ODinterface.h ****     ODR_NO_MAP = 6,          /**< SDO abort 0x06040041 - Object cannot be mapped to the PDO */
+ 139:CANopen/301/CO_ODinterface.h ****     ODR_MAP_LEN = 7,         /**< SDO abort 0x06040042 - PDO length exceeded */
+ 140:CANopen/301/CO_ODinterface.h ****     ODR_PAR_INCOMPAT = 8,    /**< SDO abort 0x06040043 - General parameter incompatibility reasons 
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 29
+
+
+ 141:CANopen/301/CO_ODinterface.h ****     ODR_DEV_INCOMPAT = 9,    /**< SDO abort 0x06040047 - General internal incompatibility in device
+ 142:CANopen/301/CO_ODinterface.h ****     ODR_HW = 10,             /**< SDO abort 0x06060000 - Access failed due to hardware error */
+ 143:CANopen/301/CO_ODinterface.h ****     ODR_TYPE_MISMATCH = 11,  /**< SDO abort 0x06070010 - Data type does not match */
+ 144:CANopen/301/CO_ODinterface.h ****     ODR_DATA_LONG = 12,      /**< SDO abort 0x06070012 - Data type does not match, length too high 
+ 145:CANopen/301/CO_ODinterface.h ****     ODR_DATA_SHORT = 13,     /**< SDO abort 0x06070013 - Data type does not match, length too short
+ 146:CANopen/301/CO_ODinterface.h ****     ODR_SUB_NOT_EXIST = 14,  /**< SDO abort 0x06090011 - Sub index does not exist */
+ 147:CANopen/301/CO_ODinterface.h ****     ODR_INVALID_VALUE = 15,  /**< SDO abort 0x06090030 - Invalid value for parameter (download only
+ 148:CANopen/301/CO_ODinterface.h ****     ODR_VALUE_HIGH = 16,     /**< SDO abort 0x06090031 - Value range of parameter written too high 
+ 149:CANopen/301/CO_ODinterface.h ****     ODR_VALUE_LOW = 17,      /**< SDO abort 0x06090032 - Value range of parameter written too low *
+ 150:CANopen/301/CO_ODinterface.h ****     ODR_MAX_LESS_MIN = 18,   /**< SDO abort 0x06090036 - Maximum value is less than minimum value *
+ 151:CANopen/301/CO_ODinterface.h ****     ODR_NO_RESOURCE = 19,    /**< SDO abort 0x060A0023 - Resource not available: SDO connection */
+ 152:CANopen/301/CO_ODinterface.h ****     ODR_GENERAL = 20,        /**< SDO abort 0x08000000 - General error */
+ 153:CANopen/301/CO_ODinterface.h ****     ODR_DATA_TRANSF = 21,    /**< SDO abort 0x08000020 - Data cannot be transferred or stored to ap
+ 154:CANopen/301/CO_ODinterface.h ****     ODR_DATA_LOC_CTRL = 22,  /**< SDO abort 0x08000021 - Data can't be transferred (local control) 
+ 155:CANopen/301/CO_ODinterface.h ****     ODR_DATA_DEV_STATE = 23, /**< SDO abort 0x08000022 - Data can't be transf. (present device stat
+ 156:CANopen/301/CO_ODinterface.h ****     ODR_OD_MISSING = 24,     /**< SDO abort 0x08000023 - Object dictionary not present */
+ 157:CANopen/301/CO_ODinterface.h ****     ODR_NO_DATA = 25,        /**< SDO abort 0x08000024 - No data available */
+ 158:CANopen/301/CO_ODinterface.h ****     ODR_COUNT = 26           /**< Last element, number of responses */
+ 159:CANopen/301/CO_ODinterface.h **** } ODR_t;
+ 160:CANopen/301/CO_ODinterface.h **** 
+ 161:CANopen/301/CO_ODinterface.h **** /**
+ 162:CANopen/301/CO_ODinterface.h ****  * IO stream structure, used for read/write access to OD variable, part of @ref OD_IO_t.
+ 163:CANopen/301/CO_ODinterface.h ****  */
+ 164:CANopen/301/CO_ODinterface.h **** typedef struct {
+ 165:CANopen/301/CO_ODinterface.h ****     void* dataOrig; /**< Pointer to original data object, defined by Object Dictionary. Default rea
+ 166:CANopen/301/CO_ODinterface.h ****                      * operate on it. If memory for data object is not specified by Object Dictiona
+ 167:CANopen/301/CO_ODinterface.h ****                      * NULL. */
+ 168:CANopen/301/CO_ODinterface.h ****     void* object; /**< Pointer to object, passed by @ref OD_extension_init(). Can be used inside re
+ 169:CANopen/301/CO_ODinterface.h ****                    * from IO   extension. */
+ 170:CANopen/301/CO_ODinterface.h ****     OD_size_t dataLength; /**< Data length in bytes or 0, if length is not specified */
+ 171:CANopen/301/CO_ODinterface.h ****     OD_size_t dataOffset; /**< In case of large data, dataOffset indicates position of already tran
+ 172:CANopen/301/CO_ODinterface.h ****     OD_attr_t attribute;  /**< Attribute bit-field of the OD sub-object, see @ref OD_attributes_t *
+ 173:CANopen/301/CO_ODinterface.h ****     uint16_t index;       /**< Index of the OD object, informative */
+ 174:CANopen/301/CO_ODinterface.h ****     uint8_t subIndex;     /**< Sub index of the OD sub-object, informative */
+ 175:CANopen/301/CO_ODinterface.h **** } OD_stream_t;
+ 176:CANopen/301/CO_ODinterface.h **** 
+ 177:CANopen/301/CO_ODinterface.h **** /**
+ 178:CANopen/301/CO_ODinterface.h ****  * Structure for input / output on the OD variable. It is initialized with @ref OD_getSub() functio
+ 179:CANopen/301/CO_ODinterface.h ****  * to OD variable is via read/write functions operating on stream, similar as standard read/write.
+ 180:CANopen/301/CO_ODinterface.h ****  */
+ 181:CANopen/301/CO_ODinterface.h **** typedef struct {
+ 182:CANopen/301/CO_ODinterface.h ****     /** Object Dictionary stream object, passed to read or write */
+ 183:CANopen/301/CO_ODinterface.h ****     OD_stream_t stream;
+ 184:CANopen/301/CO_ODinterface.h ****     /**
+ 185:CANopen/301/CO_ODinterface.h ****      * Function pointer for reading value from specified variable from Object Dictionary. If OD var
+ 186:CANopen/301/CO_ODinterface.h ****      * buf, then this function must be called several times. After completed successful read functi
+ 187:CANopen/301/CO_ODinterface.h ****      * If read is partial, it returns 'ODR_PARTIAL'. In case of errors function returns code simila
+ 188:CANopen/301/CO_ODinterface.h ****      *
+ 189:CANopen/301/CO_ODinterface.h ****      * Read can be restarted with @ref OD_rwRestart() function.
+ 190:CANopen/301/CO_ODinterface.h ****      *
+ 191:CANopen/301/CO_ODinterface.h ****      * At the moment, when Object Dictionary is initialized, every variable has assigned the same "
+ 192:CANopen/301/CO_ODinterface.h ****      * default function simply copies data from Object Dictionary variable. Application can bind it
+ 193:CANopen/301/CO_ODinterface.h ****      * for specific object. In that case application is able to calculate data for reading from own
+ 194:CANopen/301/CO_ODinterface.h ****      * the moment of "read" function call. Own "read" function on OD object can be initialized with
+ 195:CANopen/301/CO_ODinterface.h ****      * OD_extension_init() function.
+ 196:CANopen/301/CO_ODinterface.h ****      *
+ 197:CANopen/301/CO_ODinterface.h ****      * "read" function must always copy all own data to buf, except if "buf" is not large enough. (
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 30
+
+
+ 198:CANopen/301/CO_ODinterface.h ****      * not return 'ODR_PARTIAL', if there is still space in "buf".)
+ 199:CANopen/301/CO_ODinterface.h ****      *
+ 200:CANopen/301/CO_ODinterface.h ****      * @warning Do not use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros inside the read() funct
+ 201:CANopen/301/CO_ODinterface.h ****      * CO_critical_sections.
+ 202:CANopen/301/CO_ODinterface.h ****      *
+ 203:CANopen/301/CO_ODinterface.h ****      * @param stream Object Dictionary stream object.
+ 204:CANopen/301/CO_ODinterface.h ****      * @param buf Pointer to external buffer, where to data will be copied.
+ 205:CANopen/301/CO_ODinterface.h ****      * @param count Size of the external buffer in bytes.
+ 206:CANopen/301/CO_ODinterface.h ****      * @param [out] countRead If return value is "ODR_OK" or "ODR_PARTIAL", then number of bytes su
+ 207:CANopen/301/CO_ODinterface.h ****      * be returned here.
+ 208:CANopen/301/CO_ODinterface.h ****      *
+ 209:CANopen/301/CO_ODinterface.h ****      * @return Value from @ref ODR_t, "ODR_OK" in case of success.
+ 210:CANopen/301/CO_ODinterface.h ****      */
+ 211:CANopen/301/CO_ODinterface.h ****     ODR_t (*read)(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countRead);
+ 212:CANopen/301/CO_ODinterface.h ****     /**
+ 213:CANopen/301/CO_ODinterface.h ****      * Function pointer for writing value into specified variable inside Object Dictionary. If OD v
+ 214:CANopen/301/CO_ODinterface.h ****      * than buf, then this function must be called several times. After completed successful write 
+ 215:CANopen/301/CO_ODinterface.h ****      * 'ODR_OK'. If write is partial, it returns 'ODR_PARTIAL'. In case of errors function returns 
+ 216:CANopen/301/CO_ODinterface.h ****      * abort code.
+ 217:CANopen/301/CO_ODinterface.h ****      *
+ 218:CANopen/301/CO_ODinterface.h ****      * Write can be restarted with @ref OD_rwRestart() function.
+ 219:CANopen/301/CO_ODinterface.h ****      *
+ 220:CANopen/301/CO_ODinterface.h ****      * At the moment, when Object Dictionary is initialized, every variable has assigned the same "
+ 221:CANopen/301/CO_ODinterface.h ****      * which simply copies data to Object Dictionary variable. Application can bind its own "write"
+ 222:CANopen/301/CO_ODinterface.h ****      * it can bind "read" function.
+ 223:CANopen/301/CO_ODinterface.h ****      *
+ 224:CANopen/301/CO_ODinterface.h ****      * "write" function must always copy all available data from buf. If OD variable expect more da
+ 225:CANopen/301/CO_ODinterface.h ****      * "*returnCode" must return 'ODR_PARTIAL'.
+ 226:CANopen/301/CO_ODinterface.h ****      *
+ 227:CANopen/301/CO_ODinterface.h ****      * @warning Do not use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros inside the write() func
+ 228:CANopen/301/CO_ODinterface.h ****      * CO_critical_sections.
+ 229:CANopen/301/CO_ODinterface.h ****      *
+ 230:CANopen/301/CO_ODinterface.h ****      * @param stream Object Dictionary stream object.
+ 231:CANopen/301/CO_ODinterface.h ****      * @param buf Pointer to external buffer, from where data will be copied.
+ 232:CANopen/301/CO_ODinterface.h ****      * @param count Size of the external buffer in bytes.
+ 233:CANopen/301/CO_ODinterface.h ****      * @param [out] countWritten If return value is "ODR_OK" or "ODR_PARTIAL", then number of bytes
+ 234:CANopen/301/CO_ODinterface.h ****      * must be returned here.
+ 235:CANopen/301/CO_ODinterface.h ****      *
+ 236:CANopen/301/CO_ODinterface.h ****      * @return Value from @ref ODR_t, "ODR_OK" in case of success.
+ 237:CANopen/301/CO_ODinterface.h ****      */
+ 238:CANopen/301/CO_ODinterface.h ****     ODR_t (*write)(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten);
+ 239:CANopen/301/CO_ODinterface.h **** } OD_IO_t;
+ 240:CANopen/301/CO_ODinterface.h **** 
+ 241:CANopen/301/CO_ODinterface.h **** /**
+ 242:CANopen/301/CO_ODinterface.h ****  * Extension of OD object, which can optionally be specified by application in initialization phase
+ 243:CANopen/301/CO_ODinterface.h ****  * OD_extension_init() function.
+ 244:CANopen/301/CO_ODinterface.h ****  */
+ 245:CANopen/301/CO_ODinterface.h **** typedef struct {
+ 246:CANopen/301/CO_ODinterface.h ****     /** Object on which read and write will operate, part of @ref OD_stream_t */
+ 247:CANopen/301/CO_ODinterface.h ****     void* object;
+ 248:CANopen/301/CO_ODinterface.h ****     /** Application specified read function pointer. If NULL, then read will be disabled. @ref OD_r
+ 249:CANopen/301/CO_ODinterface.h ****      * used here to keep the original read function. For function description see @ref OD_IO_t. */
+ 250:CANopen/301/CO_ODinterface.h ****     ODR_t (*read)(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countRead);
+ 251:CANopen/301/CO_ODinterface.h ****     /** Application specified write function pointer. If NULL, then write will be disabled. @ref OD
+ 252:CANopen/301/CO_ODinterface.h ****      * used here to keep the original write function. For function description see @ref OD_IO_t. */
+ 253:CANopen/301/CO_ODinterface.h ****     ODR_t (*write)(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten);
+ 254:CANopen/301/CO_ODinterface.h **** #if OD_FLAGS_PDO_SIZE > 0
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 31
+
+
+ 255:CANopen/301/CO_ODinterface.h ****     /** PDO flags bit-field provides one bit for each OD variable, which exist inside OD object at 
+ 256:CANopen/301/CO_ODinterface.h ****      * If application clears that bit, and OD variable is mapped to an event driven TPDO, then TPDO
+ 257:CANopen/301/CO_ODinterface.h ****      *
+ 258:CANopen/301/CO_ODinterface.h ****      * @ref OD_FLAGS_PDO_SIZE can have a value from 0 to 32 bytes, which corresponds to 0 to 256 av
+ 259:CANopen/301/CO_ODinterface.h ****      * example, @ref OD_FLAGS_PDO_SIZE has value 4, then OD variables with sub index up to 31 will 
+ 260:CANopen/301/CO_ODinterface.h ****      * requesting functionality. See also @ref OD_requestTPDO and @ref OD_TPDOtransmitted. */
+ 261:CANopen/301/CO_ODinterface.h ****     uint8_t flagsPDO[OD_FLAGS_PDO_SIZE];
+ 262:CANopen/301/CO_ODinterface.h **** #endif
+ 263:CANopen/301/CO_ODinterface.h **** } OD_extension_t;
+ 264:CANopen/301/CO_ODinterface.h **** 
+ 265:CANopen/301/CO_ODinterface.h **** /**
+ 266:CANopen/301/CO_ODinterface.h ****  * Object Dictionary entry for one OD object.
+ 267:CANopen/301/CO_ODinterface.h ****  *
+ 268:CANopen/301/CO_ODinterface.h ****  * OD entries are collected inside OD_t as array (list). Each OD entry contains basic information a
+ 269:CANopen/301/CO_ODinterface.h ****  * and subEntriesCount), pointer to odObject with additional information about var, array or record
+ 270:CANopen/301/CO_ODinterface.h ****  * extension, configurable by application.
+ 271:CANopen/301/CO_ODinterface.h ****  */
+ 272:CANopen/301/CO_ODinterface.h **** typedef struct {
+ 273:CANopen/301/CO_ODinterface.h ****     uint16_t index;            /**< Object Dictionary index */
+ 274:CANopen/301/CO_ODinterface.h ****     uint8_t subEntriesCount;   /**< Number of all sub-entries, including sub-entry at sub-index 0 *
+ 275:CANopen/301/CO_ODinterface.h ****     uint8_t odObjectType;      /**< Type of the odObject, indicated by @ref OD_objectTypes_t enumer
+ 276:CANopen/301/CO_ODinterface.h ****     CO_PROGMEM void* odObject; /**< OD object of type indicated by odObjectType, from which @ref OD
+ 277:CANopen/301/CO_ODinterface.h ****                                   information */
+ 278:CANopen/301/CO_ODinterface.h ****     OD_extension_t* extension; /**< Extension to OD, specified by application */
+ 279:CANopen/301/CO_ODinterface.h **** } OD_entry_t;
+ 280:CANopen/301/CO_ODinterface.h **** 
+ 281:CANopen/301/CO_ODinterface.h **** /**
+ 282:CANopen/301/CO_ODinterface.h ****  * Object Dictionary
+ 283:CANopen/301/CO_ODinterface.h ****  */
+ 284:CANopen/301/CO_ODinterface.h **** typedef struct {
+ 285:CANopen/301/CO_ODinterface.h ****     uint16_t size;    /**< Number of elements in the list, without last element, which is blank */
+ 286:CANopen/301/CO_ODinterface.h ****     OD_entry_t* list; /**< List OD entries (table of contents), ordered by index */
+ 287:CANopen/301/CO_ODinterface.h **** } OD_t;
+ 288:CANopen/301/CO_ODinterface.h **** 
+ 289:CANopen/301/CO_ODinterface.h **** /**
+ 290:CANopen/301/CO_ODinterface.h ****  * Read value from original OD location
+ 291:CANopen/301/CO_ODinterface.h ****  *
+ 292:CANopen/301/CO_ODinterface.h ****  * This function can be used inside read / write functions, specified by @ref OD_extension_init(). 
+ 293:CANopen/301/CO_ODinterface.h ****  * directly from memory location specified by Object dictionary. If no IO extension is used on OD e
+ 294:CANopen/301/CO_ODinterface.h ****  * returned by @ref OD_getSub() equals to this function. See also @ref OD_IO_t.
+ 295:CANopen/301/CO_ODinterface.h ****  */
+ 296:CANopen/301/CO_ODinterface.h **** ODR_t OD_readOriginal(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countRead);
+ 297:CANopen/301/CO_ODinterface.h **** 
+ 298:CANopen/301/CO_ODinterface.h **** /**
+ 299:CANopen/301/CO_ODinterface.h ****  * Write value to original OD location
+ 300:CANopen/301/CO_ODinterface.h ****  *
+ 301:CANopen/301/CO_ODinterface.h ****  * This function can be used inside read / write functions, specified by @ref OD_extension_init(). 
+ 302:CANopen/301/CO_ODinterface.h ****  * directly to memory location specified by Object dictionary. If no IO extension is used on OD ent
+ 303:CANopen/301/CO_ODinterface.h ****  * returned by @ref OD_getSub() equals to this function. See also @ref OD_IO_t.
+ 304:CANopen/301/CO_ODinterface.h ****  */
+ 305:CANopen/301/CO_ODinterface.h **** ODR_t OD_writeOriginal(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritt
+ 306:CANopen/301/CO_ODinterface.h **** 
+ 307:CANopen/301/CO_ODinterface.h **** /**
+ 308:CANopen/301/CO_ODinterface.h ****  * Find OD entry in Object Dictionary
+ 309:CANopen/301/CO_ODinterface.h ****  *
+ 310:CANopen/301/CO_ODinterface.h ****  * @param od Object Dictionary
+ 311:CANopen/301/CO_ODinterface.h ****  * @param index CANopen Object Dictionary index of object in Object Dictionary
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 32
+
+
+ 312:CANopen/301/CO_ODinterface.h ****  *
+ 313:CANopen/301/CO_ODinterface.h ****  * @return Pointer to OD entry or NULL if not found
+ 314:CANopen/301/CO_ODinterface.h ****  */
+ 315:CANopen/301/CO_ODinterface.h **** OD_entry_t* OD_find(OD_t* od, uint16_t index);
+ 316:CANopen/301/CO_ODinterface.h **** 
+ 317:CANopen/301/CO_ODinterface.h **** /**
+ 318:CANopen/301/CO_ODinterface.h ****  * Find sub-object with specified sub-index on OD entry returned by OD_find. Function populates io 
+ 319:CANopen/301/CO_ODinterface.h ****  * sub-object data.
+ 320:CANopen/301/CO_ODinterface.h ****  *
+ 321:CANopen/301/CO_ODinterface.h ****  * @warning
+ 322:CANopen/301/CO_ODinterface.h ****  * Read and write functions may be called from different threads, so critical sections in custom fu
+ 323:CANopen/301/CO_ODinterface.h ****  * observed, see @ref CO_critical_sections.
+ 324:CANopen/301/CO_ODinterface.h ****  *
+ 325:CANopen/301/CO_ODinterface.h ****  * @param entry Object Dictionary entry.
+ 326:CANopen/301/CO_ODinterface.h ****  * @param subIndex Sub-index of the variable from the OD object.
+ 327:CANopen/301/CO_ODinterface.h ****  * @param [out] io Structure will be populated on success.
+ 328:CANopen/301/CO_ODinterface.h ****  * @param odOrig If true, then potential IO extension on entry will be ignored and access to data e
+ 329:CANopen/301/CO_ODinterface.h ****  * OD location will be returned
+ 330:CANopen/301/CO_ODinterface.h ****  *
+ 331:CANopen/301/CO_ODinterface.h ****  * @return Value from @ref ODR_t, "ODR_OK" in case of success.
+ 332:CANopen/301/CO_ODinterface.h ****  */
+ 333:CANopen/301/CO_ODinterface.h **** ODR_t OD_getSub(const OD_entry_t* entry, uint8_t subIndex, OD_IO_t* io, bool_t odOrig);
+ 334:CANopen/301/CO_ODinterface.h **** 
+ 335:CANopen/301/CO_ODinterface.h **** /**
+ 336:CANopen/301/CO_ODinterface.h ****  * Return index from OD entry
+ 337:CANopen/301/CO_ODinterface.h ****  *
+ 338:CANopen/301/CO_ODinterface.h ****  * @param entry Object Dictionary entry.
+ 339:CANopen/301/CO_ODinterface.h ****  *
+ 340:CANopen/301/CO_ODinterface.h ****  * @return OD index
+ 341:CANopen/301/CO_ODinterface.h ****  */
+ 342:CANopen/301/CO_ODinterface.h **** static inline uint16_t
+ 343:CANopen/301/CO_ODinterface.h **** OD_getIndex(const OD_entry_t* entry) {
+ 532              		.loc 3 343 1 view .LVU152
+ 533              	.LBB25:
+ 344:CANopen/301/CO_ODinterface.h ****     return (entry != NULL) ? entry->index : 0U;
+ 534              		.loc 3 344 5 view .LVU153
+ 535              		.loc 3 344 43 is_stmt 0 discriminator 1 view .LVU154
+ 536 005c 3B88     		ldrh	r3, [r7]
+ 537              	.LVL51:
+ 538              		.loc 3 344 43 discriminator 1 view .LVU155
+ 539              	.LBE25:
+ 540              	.LBE24:
+ 132:CANopen/301/CO_HBconsumer.c ****             }
+ 541              		.loc 1 132 26 discriminator 1 view .LVU156
+ 542 005e C8F80030 		str	r3, [r8]
+ 543              	.L35:
+ 134:CANopen/301/CO_HBconsumer.c ****         }
+ 544              		.loc 1 134 13 is_stmt 1 view .LVU157
+ 134:CANopen/301/CO_HBconsumer.c ****         }
+ 545              		.loc 1 134 20 is_stmt 0 view .LVU158
+ 546 0062 6FF00B03 		mvn	r3, #11
+ 547 0066 2CE0     		b	.L32
+ 548              	.LVL52:
+ 549              	.L38:
+ 145:CANopen/301/CO_HBconsumer.c ****                 return ret;
+ 550              		.loc 1 145 13 is_stmt 1 view .LVU159
+ 145:CANopen/301/CO_HBconsumer.c ****                 return ret;
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 33
+
+
+ 551              		.loc 1 145 16 is_stmt 0 view .LVU160
+ 552 0068 13F10C0F 		cmn	r3, #12
+ 553 006c 29D1     		bne	.L32
+ 554              	.L37:
+ 555              	.LBE23:
+ 127:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 556              		.loc 1 127 62 is_stmt 1 discriminator 2 view .LVU161
+ 557              	.LVL53:
+ 127:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 558              		.loc 1 127 62 is_stmt 0 discriminator 2 view .LVU162
+ 559 006e 2546     		mov	r5, r4
+ 560              	.LVL54:
+ 561              	.L33:
+ 127:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 562              		.loc 1 127 27 is_stmt 1 discriminator 1 view .LVU163
+ 127:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 563              		.loc 1 127 35 is_stmt 0 discriminator 1 view .LVU164
+ 564 0070 337A     		ldrb	r3, [r6, #8]	@ zero_extendqisi2
+ 127:CANopen/301/CO_HBconsumer.c ****         uint32_t val;
+ 565              		.loc 1 127 27 discriminator 1 view .LVU165
+ 566 0072 AB42     		cmp	r3, r5
+ 567 0074 1DD9     		bls	.L46
+ 568              	.LBB30:
+ 128:CANopen/301/CO_HBconsumer.c ****         odRet = OD_get_u32(OD_1016_HBcons, i + 1U, &val, true);
+ 569              		.loc 1 128 9 is_stmt 1 view .LVU166
+ 129:CANopen/301/CO_HBconsumer.c ****         if (odRet != ODR_OK) {
+ 570              		.loc 1 129 9 view .LVU167
+ 129:CANopen/301/CO_HBconsumer.c ****         if (odRet != ODR_OK) {
+ 571              		.loc 1 129 17 is_stmt 0 view .LVU168
+ 572 0076 6C1C     		adds	r4, r5, #1
+ 573 0078 E4B2     		uxtb	r4, r4
+ 574              	.LVL55:
+ 575              	.LBB26:
+ 576              	.LBI26:
+ 345:CANopen/301/CO_ODinterface.h **** }
+ 346:CANopen/301/CO_ODinterface.h **** 
+ 347:CANopen/301/CO_ODinterface.h **** /**
+ 348:CANopen/301/CO_ODinterface.h ****  * Check, if OD variable is mappable to PDO or SRDO.
+ 349:CANopen/301/CO_ODinterface.h ****  *
+ 350:CANopen/301/CO_ODinterface.h ****  * If OD variable is mappable, then it may be necessary to protect read/write access from mainline 
+ 351:CANopen/301/CO_ODinterface.h ****  * CO_critical_sections.
+ 352:CANopen/301/CO_ODinterface.h ****  *
+ 353:CANopen/301/CO_ODinterface.h ****  * @param stream Object Dictionary stream object.
+ 354:CANopen/301/CO_ODinterface.h ****  *
+ 355:CANopen/301/CO_ODinterface.h ****  * @return true, if OD variable is mappable.
+ 356:CANopen/301/CO_ODinterface.h ****  */
+ 357:CANopen/301/CO_ODinterface.h **** static inline bool_t
+ 358:CANopen/301/CO_ODinterface.h **** OD_mappable(OD_stream_t* stream) {
+ 359:CANopen/301/CO_ODinterface.h ****     return (stream != NULL) ? ((stream->attribute & ((OD_attr_t)ODA_TRPDO | (OD_attr_t)ODA_TRSRDO))
+ 360:CANopen/301/CO_ODinterface.h **** }
+ 361:CANopen/301/CO_ODinterface.h **** 
+ 362:CANopen/301/CO_ODinterface.h **** /**
+ 363:CANopen/301/CO_ODinterface.h ****  * Restart read or write operation on OD variable
+ 364:CANopen/301/CO_ODinterface.h ****  *
+ 365:CANopen/301/CO_ODinterface.h ****  * It is not necessary to call this function, if stream was initialized by @ref OD_getSub(). It is 
+ 366:CANopen/301/CO_ODinterface.h ****  * call this function, if previous read or write was successfully finished.
+ 367:CANopen/301/CO_ODinterface.h ****  *
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 34
+
+
+ 368:CANopen/301/CO_ODinterface.h ****  * @param stream Object Dictionary stream object.
+ 369:CANopen/301/CO_ODinterface.h ****  */
+ 370:CANopen/301/CO_ODinterface.h **** static inline void
+ 371:CANopen/301/CO_ODinterface.h **** OD_rwRestart(OD_stream_t* stream) {
+ 372:CANopen/301/CO_ODinterface.h ****     if (stream != NULL) {
+ 373:CANopen/301/CO_ODinterface.h ****         stream->dataOffset = 0U;
+ 374:CANopen/301/CO_ODinterface.h ****     }
+ 375:CANopen/301/CO_ODinterface.h **** }
+ 376:CANopen/301/CO_ODinterface.h **** 
+ 377:CANopen/301/CO_ODinterface.h **** /**
+ 378:CANopen/301/CO_ODinterface.h ****  * Request TPDO, to which OD variable is mapped
+ 379:CANopen/301/CO_ODinterface.h ****  *
+ 380:CANopen/301/CO_ODinterface.h ****  * Function clears the flagPDO bit, which corresponds to OD variable at specific OD index and subin
+ 381:CANopen/301/CO_ODinterface.h ****  * functionality to work, @ref OD_extension_t must be enabled on OD variable. If OD variable is map
+ 382:CANopen/301/CO_ODinterface.h ****  * event driven transmission, then TPDO will be transmitted after this function call. If OD variabl
+ 383:CANopen/301/CO_ODinterface.h ****  * than one TPDO with event driven transmission, only the first matched TPDO will be transmitted.
+ 384:CANopen/301/CO_ODinterface.h ****  *
+ 385:CANopen/301/CO_ODinterface.h ****  * TPDO event driven transmission is enabled, if TPDO communication parameter, transmission type is
+ 386:CANopen/301/CO_ODinterface.h ****  * or 255. For other transmission types (synchronous) flagPDO bit is ignored.
+ 387:CANopen/301/CO_ODinterface.h ****  *
+ 388:CANopen/301/CO_ODinterface.h ****  * @param entry Object Dictionary entry.
+ 389:CANopen/301/CO_ODinterface.h ****  * @param subIndex subIndex of the OD variable.
+ 390:CANopen/301/CO_ODinterface.h ****  */
+ 391:CANopen/301/CO_ODinterface.h **** static inline void
+ 392:CANopen/301/CO_ODinterface.h **** OD_requestTPDO(OD_entry_t* entry, uint8_t subIndex) {
+ 393:CANopen/301/CO_ODinterface.h **** #if OD_FLAGS_PDO_SIZE > 0
+ 394:CANopen/301/CO_ODinterface.h ****     if ((entry != NULL) && (entry->extension != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8U))) {
+ 395:CANopen/301/CO_ODinterface.h ****         /* clear subIndex-th bit */
+ 396:CANopen/301/CO_ODinterface.h ****         uint8_t mask = ~(1U << (subIndex & 0x07U));
+ 397:CANopen/301/CO_ODinterface.h ****         entry->extension->flagsPDO[subIndex >> 3] &= mask;
+ 398:CANopen/301/CO_ODinterface.h ****     }
+ 399:CANopen/301/CO_ODinterface.h **** #endif
+ 400:CANopen/301/CO_ODinterface.h **** }
+ 401:CANopen/301/CO_ODinterface.h **** 
+ 402:CANopen/301/CO_ODinterface.h **** /**
+ 403:CANopen/301/CO_ODinterface.h ****  * Check if requested TPDO was transmitted
+ 404:CANopen/301/CO_ODinterface.h ****  *
+ 405:CANopen/301/CO_ODinterface.h ****  * @param entry Object Dictionary entry.
+ 406:CANopen/301/CO_ODinterface.h ****  * @param subIndex subIndex of the OD variable.
+ 407:CANopen/301/CO_ODinterface.h ****  *
+ 408:CANopen/301/CO_ODinterface.h ****  * @return Return true if event driven TPDO with mapping to OD variable, indicated by entry and sub
+ 409:CANopen/301/CO_ODinterface.h ****  * transmitted since last @ref OD_requestTPDO call. If there was no @ref OD_requestTPDO call yet an
+ 410:CANopen/301/CO_ODinterface.h ****  * transmitted by other event, function also returns true.
+ 411:CANopen/301/CO_ODinterface.h ****  */
+ 412:CANopen/301/CO_ODinterface.h **** static inline bool_t
+ 413:CANopen/301/CO_ODinterface.h **** OD_TPDOtransmitted(OD_entry_t* entry, uint8_t subIndex) {
+ 414:CANopen/301/CO_ODinterface.h **** #if OD_FLAGS_PDO_SIZE > 0
+ 415:CANopen/301/CO_ODinterface.h ****     if ((entry != NULL) && (entry->extension != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8U))) {
+ 416:CANopen/301/CO_ODinterface.h ****         /* return true, if subIndex-th bit is set */
+ 417:CANopen/301/CO_ODinterface.h ****         uint8_t mask = 1U << (subIndex & 0x07U);
+ 418:CANopen/301/CO_ODinterface.h ****         if ((entry->extension->flagsPDO[subIndex >> 3] & mask) != 0U) {
+ 419:CANopen/301/CO_ODinterface.h ****             return true;
+ 420:CANopen/301/CO_ODinterface.h ****         }
+ 421:CANopen/301/CO_ODinterface.h ****     }
+ 422:CANopen/301/CO_ODinterface.h **** #endif
+ 423:CANopen/301/CO_ODinterface.h ****     return false;
+ 424:CANopen/301/CO_ODinterface.h **** }
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 35
+
+
+ 425:CANopen/301/CO_ODinterface.h **** 
+ 426:CANopen/301/CO_ODinterface.h **** /**
+ 427:CANopen/301/CO_ODinterface.h ****  * Get SDO abort code from returnCode
+ 428:CANopen/301/CO_ODinterface.h ****  *
+ 429:CANopen/301/CO_ODinterface.h ****  * @param returnCode Returned from some OD access functions
+ 430:CANopen/301/CO_ODinterface.h ****  *
+ 431:CANopen/301/CO_ODinterface.h ****  * @return Corresponding @ref CO_SDO_abortCode_t
+ 432:CANopen/301/CO_ODinterface.h ****  */
+ 433:CANopen/301/CO_ODinterface.h **** uint32_t OD_getSDOabCode(ODR_t returnCode);
+ 434:CANopen/301/CO_ODinterface.h **** 
+ 435:CANopen/301/CO_ODinterface.h **** /**
+ 436:CANopen/301/CO_ODinterface.h ****  * Extend OD object with own read/write functions and/or flagsPDO
+ 437:CANopen/301/CO_ODinterface.h ****  *
+ 438:CANopen/301/CO_ODinterface.h ****  * This function gives application very powerful tool: definition of own IO access on OD object. St
+ 439:CANopen/301/CO_ODinterface.h ****  * attributes are the same as defined in original OD object, but data are read directly from (or wr
+ 440:CANopen/301/CO_ODinterface.h ****  * application specified object via custom function calls.
+ 441:CANopen/301/CO_ODinterface.h ****  *
+ 442:CANopen/301/CO_ODinterface.h ****  * Before this function specifies extension, OD variables are accessed from original OD location. A
+ 443:CANopen/301/CO_ODinterface.h ****  * specifies extension OD variables are accessed from read/write functions specified by extension. 
+ 444:CANopen/301/CO_ODinterface.h ****  * argument to @ref OD_getSub() is set to true.)
+ 445:CANopen/301/CO_ODinterface.h ****  *
+ 446:CANopen/301/CO_ODinterface.h ****  * This function must also be used, when flagsPDO needs to be enabled for specific entry.
+ 447:CANopen/301/CO_ODinterface.h ****  *
+ 448:CANopen/301/CO_ODinterface.h ****  * @warning
+ 449:CANopen/301/CO_ODinterface.h ****  * Object dictionary storage works only directly on OD variables. It does not access read function 
+ 450:CANopen/301/CO_ODinterface.h ****  * if extended OD objects needs to be preserved, then @ref OD_writeOriginal can be used inside cust
+ 451:CANopen/301/CO_ODinterface.h ****  *
+ 452:CANopen/301/CO_ODinterface.h ****  * @warning
+ 453:CANopen/301/CO_ODinterface.h ****  * Read and write functions may be called from different threads, so critical sections in custom fu
+ 454:CANopen/301/CO_ODinterface.h ****  * observed, see @ref CO_critical_sections.
+ 455:CANopen/301/CO_ODinterface.h ****  *
+ 456:CANopen/301/CO_ODinterface.h ****  * @param entry Object Dictionary entry.
+ 457:CANopen/301/CO_ODinterface.h ****  * @param extension Extension object, which must be initialized externally. Extension object must e
+ 458:CANopen/301/CO_ODinterface.h ****  * NULL, extension will be removed.
+ 459:CANopen/301/CO_ODinterface.h ****  *
+ 460:CANopen/301/CO_ODinterface.h ****  * @return "ODR_OK" on success, "ODR_IDX_NOT_EXIST" if OD object doesn't exist.
+ 461:CANopen/301/CO_ODinterface.h ****  */
+ 462:CANopen/301/CO_ODinterface.h **** static inline ODR_t
+ 463:CANopen/301/CO_ODinterface.h **** OD_extension_init(OD_entry_t* entry, OD_extension_t* extension) {
+ 464:CANopen/301/CO_ODinterface.h ****     if (entry == NULL) {
+ 465:CANopen/301/CO_ODinterface.h ****         return ODR_IDX_NOT_EXIST;
+ 466:CANopen/301/CO_ODinterface.h ****     }
+ 467:CANopen/301/CO_ODinterface.h ****     entry->extension = extension;
+ 468:CANopen/301/CO_ODinterface.h ****     return ODR_OK;
+ 469:CANopen/301/CO_ODinterface.h **** }
+ 470:CANopen/301/CO_ODinterface.h **** 
+ 471:CANopen/301/CO_ODinterface.h **** /**
+ 472:CANopen/301/CO_ODinterface.h ****  * @defgroup CO_ODgetSetters Getters and setters
+ 473:CANopen/301/CO_ODinterface.h ****  * @{
+ 474:CANopen/301/CO_ODinterface.h ****  *
+ 475:CANopen/301/CO_ODinterface.h ****  * Getter and setter helper functions for accessing different types of Object Dictionary variables.
+ 476:CANopen/301/CO_ODinterface.h ****  */
+ 477:CANopen/301/CO_ODinterface.h **** /**
+ 478:CANopen/301/CO_ODinterface.h ****  * Get variable from Object Dictionary
+ 479:CANopen/301/CO_ODinterface.h ****  *
+ 480:CANopen/301/CO_ODinterface.h ****  * @param entry Object Dictionary entry.
+ 481:CANopen/301/CO_ODinterface.h ****  * @param subIndex Sub-index of the variable from the OD object.
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 36
+
+
+ 482:CANopen/301/CO_ODinterface.h ****  * @param [out] val Value will be written here.
+ 483:CANopen/301/CO_ODinterface.h ****  * @param len Size of value to retrieve from OD.
+ 484:CANopen/301/CO_ODinterface.h ****  * @param odOrig If true, then potential IO extension on entry will be ignored and data in the orig
+ 485:CANopen/301/CO_ODinterface.h ****  * be returned.
+ 486:CANopen/301/CO_ODinterface.h ****  *
+ 487:CANopen/301/CO_ODinterface.h ****  * @return Value from @ref ODR_t, "ODR_OK" in case of success. Error, if variable does not exist in
+ 488:CANopen/301/CO_ODinterface.h ****  * it does not have the correct length or other reason.
+ 489:CANopen/301/CO_ODinterface.h ****  */
+ 490:CANopen/301/CO_ODinterface.h **** ODR_t OD_get_value(const OD_entry_t* entry, uint8_t subIndex, void* val, OD_size_t len, bool_t odOr
+ 491:CANopen/301/CO_ODinterface.h **** 
+ 492:CANopen/301/CO_ODinterface.h **** /** Get int8_t variable from Object Dictionary, see @ref OD_get_value */
+ 493:CANopen/301/CO_ODinterface.h **** static inline ODR_t
+ 494:CANopen/301/CO_ODinterface.h **** OD_get_i8(const OD_entry_t* entry, uint8_t subIndex, int8_t* val, bool_t odOrig) {
+ 495:CANopen/301/CO_ODinterface.h ****     return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
+ 496:CANopen/301/CO_ODinterface.h **** }
+ 497:CANopen/301/CO_ODinterface.h **** 
+ 498:CANopen/301/CO_ODinterface.h **** /** Get int16_t variable from Object Dictionary, see @ref OD_get_value */
+ 499:CANopen/301/CO_ODinterface.h **** static inline ODR_t
+ 500:CANopen/301/CO_ODinterface.h **** OD_get_i16(const OD_entry_t* entry, uint8_t subIndex, int16_t* val, bool_t odOrig) {
+ 501:CANopen/301/CO_ODinterface.h ****     return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
+ 502:CANopen/301/CO_ODinterface.h **** }
+ 503:CANopen/301/CO_ODinterface.h **** 
+ 504:CANopen/301/CO_ODinterface.h **** /** Get int32_t variable from Object Dictionary, see @ref OD_get_value */
+ 505:CANopen/301/CO_ODinterface.h **** static inline ODR_t
+ 506:CANopen/301/CO_ODinterface.h **** OD_get_i32(const OD_entry_t* entry, uint8_t subIndex, int32_t* val, bool_t odOrig) {
+ 507:CANopen/301/CO_ODinterface.h ****     return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
+ 508:CANopen/301/CO_ODinterface.h **** }
+ 509:CANopen/301/CO_ODinterface.h **** 
+ 510:CANopen/301/CO_ODinterface.h **** /** Get int64_t variable from Object Dictionary, see @ref OD_get_value */
+ 511:CANopen/301/CO_ODinterface.h **** static inline ODR_t
+ 512:CANopen/301/CO_ODinterface.h **** OD_get_i64(const OD_entry_t* entry, uint8_t subIndex, int64_t* val, bool_t odOrig) {
+ 513:CANopen/301/CO_ODinterface.h ****     return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
+ 514:CANopen/301/CO_ODinterface.h **** }
+ 515:CANopen/301/CO_ODinterface.h **** 
+ 516:CANopen/301/CO_ODinterface.h **** /** Get uint8_t variable from Object Dictionary, see @ref OD_get_value */
+ 517:CANopen/301/CO_ODinterface.h **** static inline ODR_t
+ 518:CANopen/301/CO_ODinterface.h **** OD_get_u8(const OD_entry_t* entry, uint8_t subIndex, uint8_t* val, bool_t odOrig) {
+ 519:CANopen/301/CO_ODinterface.h ****     return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
+ 520:CANopen/301/CO_ODinterface.h **** }
+ 521:CANopen/301/CO_ODinterface.h **** 
+ 522:CANopen/301/CO_ODinterface.h **** /** Get uint16_t variable from Object Dictionary, see @ref OD_get_value */
+ 523:CANopen/301/CO_ODinterface.h **** static inline ODR_t
+ 524:CANopen/301/CO_ODinterface.h **** OD_get_u16(const OD_entry_t* entry, uint8_t subIndex, uint16_t* val, bool_t odOrig) {
+ 525:CANopen/301/CO_ODinterface.h ****     return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
+ 526:CANopen/301/CO_ODinterface.h **** }
+ 527:CANopen/301/CO_ODinterface.h **** 
+ 528:CANopen/301/CO_ODinterface.h **** /** Get uint32_t variable from Object Dictionary, see @ref OD_get_value */
+ 529:CANopen/301/CO_ODinterface.h **** static inline ODR_t
+ 530:CANopen/301/CO_ODinterface.h **** OD_get_u32(const OD_entry_t* entry, uint8_t subIndex, uint32_t* val, bool_t odOrig) {
+ 577              		.loc 3 530 1 is_stmt 1 view .LVU169
+ 578              	.LBB27:
+ 531:CANopen/301/CO_ODinterface.h ****     return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
+ 579              		.loc 3 531 5 view .LVU170
+ 580              		.loc 3 531 12 is_stmt 0 view .LVU171
+ 581 007a 0123     		movs	r3, #1
+ 582 007c 0093     		str	r3, [sp]
+ 583 007e 0423     		movs	r3, #4
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 37
+
+
+ 584 0080 03AA     		add	r2, sp, #12
+ 585              	.LVL56:
+ 586              		.loc 3 531 12 view .LVU172
+ 587 0082 2146     		mov	r1, r4
+ 588 0084 3846     		mov	r0, r7
+ 589 0086 FFF7FEFF 		bl	OD_get_value
+ 590              	.LVL57:
+ 591              		.loc 3 531 12 view .LVU173
+ 592              	.LBE27:
+ 593              	.LBE26:
+ 130:CANopen/301/CO_HBconsumer.c ****             if (errInfo != NULL) {
+ 594              		.loc 1 130 9 is_stmt 1 view .LVU174
+ 130:CANopen/301/CO_HBconsumer.c ****             if (errInfo != NULL) {
+ 595              		.loc 1 130 12 is_stmt 0 view .LVU175
+ 596 008a 0028     		cmp	r0, #0
+ 597 008c E3D1     		bne	.L47
+ 137:CANopen/301/CO_HBconsumer.c ****         uint16_t consumer_time = (uint16_t)(val & 0xFFFFU);
+ 598              		.loc 1 137 9 is_stmt 1 view .LVU176
+ 137:CANopen/301/CO_HBconsumer.c ****         uint16_t consumer_time = (uint16_t)(val & 0xFFFFU);
+ 599              		.loc 1 137 41 is_stmt 0 view .LVU177
+ 600 008e 039A     		ldr	r2, [sp, #12]
+ 601              	.LVL58:
+ 138:CANopen/301/CO_HBconsumer.c ****         CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, i, nodeId, consumer_time);
+ 602              		.loc 1 138 9 is_stmt 1 view .LVU178
+ 139:CANopen/301/CO_HBconsumer.c ****         if (ret != CO_ERROR_NO) {
+ 603              		.loc 1 139 9 view .LVU179
+ 139:CANopen/301/CO_HBconsumer.c ****         if (ret != CO_ERROR_NO) {
+ 604              		.loc 1 139 32 is_stmt 0 view .LVU180
+ 605 0090 93B2     		uxth	r3, r2
+ 606 0092 C2F30742 		ubfx	r2, r2, #16, #8
+ 607              	.LVL59:
+ 139:CANopen/301/CO_HBconsumer.c ****         if (ret != CO_ERROR_NO) {
+ 608              		.loc 1 139 32 view .LVU181
+ 609 0096 2946     		mov	r1, r5
+ 610 0098 3046     		mov	r0, r6
+ 611              	.LVL60:
+ 139:CANopen/301/CO_HBconsumer.c ****         if (ret != CO_ERROR_NO) {
+ 612              		.loc 1 139 32 view .LVU182
+ 613 009a FFF7FEFF 		bl	CO_HBconsumer_initEntry
+ 614              	.LVL61:
+ 140:CANopen/301/CO_HBconsumer.c ****             if (errInfo != NULL) {
+ 615              		.loc 1 140 9 is_stmt 1 view .LVU183
+ 140:CANopen/301/CO_HBconsumer.c ****             if (errInfo != NULL) {
+ 616              		.loc 1 140 12 is_stmt 0 view .LVU184
+ 617 009e 0346     		mov	r3, r0
+ 618 00a0 0028     		cmp	r0, #0
+ 619 00a2 E4D0     		beq	.L37
+ 141:CANopen/301/CO_HBconsumer.c ****                 *errInfo = OD_getIndex(OD_1016_HBcons);
+ 620              		.loc 1 141 13 is_stmt 1 view .LVU185
+ 141:CANopen/301/CO_HBconsumer.c ****                 *errInfo = OD_getIndex(OD_1016_HBcons);
+ 621              		.loc 1 141 16 is_stmt 0 view .LVU186
+ 622 00a4 B8F1000F 		cmp	r8, #0
+ 623 00a8 DED0     		beq	.L38
+ 142:CANopen/301/CO_HBconsumer.c ****             }
+ 624              		.loc 1 142 17 is_stmt 1 view .LVU187
+ 625              	.LVL62:
+ 626              	.LBB28:
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 38
+
+
+ 627              	.LBI28:
+ 343:CANopen/301/CO_ODinterface.h ****     return (entry != NULL) ? entry->index : 0U;
+ 628              		.loc 3 343 1 view .LVU188
+ 629              	.LBB29:
+ 344:CANopen/301/CO_ODinterface.h **** }
+ 630              		.loc 3 344 5 view .LVU189
+ 344:CANopen/301/CO_ODinterface.h **** }
+ 631              		.loc 3 344 43 is_stmt 0 discriminator 1 view .LVU190
+ 632 00aa 3A88     		ldrh	r2, [r7]
+ 633              	.LVL63:
+ 344:CANopen/301/CO_ODinterface.h **** }
+ 634              		.loc 3 344 43 discriminator 1 view .LVU191
+ 635              	.LBE29:
+ 636              	.LBE28:
+ 142:CANopen/301/CO_HBconsumer.c ****             }
+ 637              		.loc 1 142 26 discriminator 1 view .LVU192
+ 638 00ac C8F80020 		str	r2, [r8]
+ 639 00b0 DAE7     		b	.L38
+ 640              	.LVL64:
+ 641              	.L46:
+ 142:CANopen/301/CO_HBconsumer.c ****             }
+ 642              		.loc 1 142 26 discriminator 1 view .LVU193
+ 643              	.LBE30:
+ 644              	.LBE22:
+ 153:CANopen/301/CO_HBconsumer.c ****     HBcons->OD_1016_extension.read = OD_readOriginal;
+ 645              		.loc 1 153 5 is_stmt 1 view .LVU194
+ 153:CANopen/301/CO_HBconsumer.c ****     HBcons->OD_1016_extension.read = OD_readOriginal;
+ 646              		.loc 1 153 38 is_stmt 0 view .LVU195
+ 647 00b2 3662     		str	r6, [r6, #32]
+ 154:CANopen/301/CO_HBconsumer.c ****     HBcons->OD_1016_extension.write = OD_write_1016;
+ 648              		.loc 1 154 5 is_stmt 1 view .LVU196
+ 154:CANopen/301/CO_HBconsumer.c ****     HBcons->OD_1016_extension.write = OD_write_1016;
+ 649              		.loc 1 154 36 is_stmt 0 view .LVU197
+ 650 00b4 0C4B     		ldr	r3, .L48
+ 651 00b6 7362     		str	r3, [r6, #36]
+ 155:CANopen/301/CO_HBconsumer.c ****     odRet = OD_extension_init(OD_1016_HBcons, &HBcons->OD_1016_extension);
+ 652              		.loc 1 155 5 is_stmt 1 view .LVU198
+ 155:CANopen/301/CO_HBconsumer.c ****     odRet = OD_extension_init(OD_1016_HBcons, &HBcons->OD_1016_extension);
+ 653              		.loc 1 155 37 is_stmt 0 view .LVU199
+ 654 00b8 0C4B     		ldr	r3, .L48+4
+ 655 00ba B362     		str	r3, [r6, #40]
+ 156:CANopen/301/CO_HBconsumer.c ****     if (odRet != ODR_OK) {
+ 656              		.loc 1 156 5 is_stmt 1 view .LVU200
+ 156:CANopen/301/CO_HBconsumer.c ****     if (odRet != ODR_OK) {
+ 657              		.loc 1 156 13 is_stmt 0 view .LVU201
+ 658 00bc 2036     		adds	r6, r6, #32
+ 659              	.LVL65:
+ 660              	.LBB31:
+ 661              	.LBI31:
+ 463:CANopen/301/CO_ODinterface.h ****     if (entry == NULL) {
+ 662              		.loc 3 463 1 is_stmt 1 view .LVU202
+ 663              	.LBB32:
+ 464:CANopen/301/CO_ODinterface.h ****         return ODR_IDX_NOT_EXIST;
+ 664              		.loc 3 464 5 view .LVU203
+ 467:CANopen/301/CO_ODinterface.h ****     return ODR_OK;
+ 665              		.loc 3 467 5 view .LVU204
+ 467:CANopen/301/CO_ODinterface.h ****     return ODR_OK;
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 39
+
+
+ 666              		.loc 3 467 22 is_stmt 0 view .LVU205
+ 667 00be BE60     		str	r6, [r7, #8]
+ 668              	.LVL66:
+ 468:CANopen/301/CO_ODinterface.h **** }
+ 669              		.loc 3 468 5 is_stmt 1 view .LVU206
+ 468:CANopen/301/CO_ODinterface.h **** }
+ 670              		.loc 3 468 5 is_stmt 0 view .LVU207
+ 671              	.LBE32:
+ 672              	.LBE31:
+ 157:CANopen/301/CO_HBconsumer.c ****         if (errInfo != NULL) {
+ 673              		.loc 1 157 5 is_stmt 1 view .LVU208
+ 165:CANopen/301/CO_HBconsumer.c **** }
+ 674              		.loc 1 165 12 is_stmt 0 view .LVU209
+ 675 00c0 0023     		movs	r3, #0
+ 676              	.LVL67:
+ 677              	.L32:
+ 166:CANopen/301/CO_HBconsumer.c **** 
+ 678              		.loc 1 166 1 view .LVU210
+ 679 00c2 1846     		mov	r0, r3
+ 680 00c4 04B0     		add	sp, sp, #16
+ 681              	.LCFI9:
+ 682              		.cfi_remember_state
+ 683              		.cfi_def_cfa_offset 32
+ 684              		@ sp needed
+ 685 00c6 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 686              	.LVL68:
+ 687              	.L40:
+ 688              	.LCFI10:
+ 689              		.cfi_restore_state
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ 690              		.loc 1 112 16 view .LVU211
+ 691 00ca 4FF0FF33 		mov	r3, #-1
+ 692              	.LVL69:
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ 693              		.loc 1 112 16 view .LVU212
+ 694 00ce F8E7     		b	.L32
+ 695              	.LVL70:
+ 696              	.L41:
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ 697              		.loc 1 112 16 view .LVU213
+ 698 00d0 4FF0FF33 		mov	r3, #-1
+ 699              	.LVL71:
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ 700              		.loc 1 112 16 view .LVU214
+ 701 00d4 F5E7     		b	.L32
+ 702              	.LVL72:
+ 703              	.L42:
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ 704              		.loc 1 112 16 view .LVU215
+ 705 00d6 4FF0FF33 		mov	r3, #-1
+ 706              	.LVL73:
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ 707              		.loc 1 112 16 view .LVU216
+ 708 00da F2E7     		b	.L32
+ 709              	.LVL74:
+ 710              	.L43:
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 40
+
+
+ 711              		.loc 1 112 16 view .LVU217
+ 712 00dc 4FF0FF33 		mov	r3, #-1
+ 713              	.LVL75:
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ 714              		.loc 1 112 16 view .LVU218
+ 715 00e0 EFE7     		b	.L32
+ 716              	.LVL76:
+ 717              	.L44:
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ 718              		.loc 1 112 16 view .LVU219
+ 719 00e2 4FF0FF33 		mov	r3, #-1
+ 720              	.LVL77:
+ 112:CANopen/301/CO_HBconsumer.c ****     }
+ 721              		.loc 1 112 16 view .LVU220
+ 722 00e6 ECE7     		b	.L32
+ 723              	.L49:
+ 724              		.align	2
+ 725              	.L48:
+ 726 00e8 00000000 		.word	OD_readOriginal
+ 727 00ec 00000000 		.word	OD_write_1016
+ 728              		.cfi_endproc
+ 729              	.LFE38:
+ 731              		.section	.text.CO_HBconsumer_process,"ax",%progbits
+ 732              		.align	1
+ 733              		.global	CO_HBconsumer_process
+ 734              		.syntax unified
+ 735              		.thumb
+ 736              		.thumb_func
+ 738              	CO_HBconsumer_process:
+ 739              	.LVL78:
+ 740              	.LFB40:
+ 217:CANopen/301/CO_HBconsumer.c **** 
+ 218:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
+ 219:CANopen/301/CO_HBconsumer.c **** void
+ 220:CANopen/301/CO_HBconsumer.c **** CO_HBconsumer_initCallbackPre(CO_HBconsumer_t* HBcons, void* object, void (*pFunctSignal)(void* obj
+ 221:CANopen/301/CO_HBconsumer.c ****     if (HBcons != NULL) {
+ 222:CANopen/301/CO_HBconsumer.c ****         uint8_t i;
+ 223:CANopen/301/CO_HBconsumer.c ****         for (i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
+ 224:CANopen/301/CO_HBconsumer.c ****             HBcons->monitoredNodes[i].pFunctSignalPre = pFunctSignal;
+ 225:CANopen/301/CO_HBconsumer.c ****             HBcons->monitoredNodes[i].functSignalObjectPre = object;
+ 226:CANopen/301/CO_HBconsumer.c ****         }
+ 227:CANopen/301/CO_HBconsumer.c ****     }
+ 228:CANopen/301/CO_HBconsumer.c **** }
+ 229:CANopen/301/CO_HBconsumer.c **** #endif
+ 230:CANopen/301/CO_HBconsumer.c **** 
+ 231:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0
+ 232:CANopen/301/CO_HBconsumer.c **** void
+ 233:CANopen/301/CO_HBconsumer.c **** CO_HBconsumer_initCallbackNmtChanged(CO_HBconsumer_t* HBcons, uint8_t idx, void* object,
+ 234:CANopen/301/CO_HBconsumer.c ****                                      void (*pFunctSignal)(uint8_t nodeId, uint8_t idx, CO_NMT_inter
+ 235:CANopen/301/CO_HBconsumer.c ****                                                           void* object)) {
+ 236:CANopen/301/CO_HBconsumer.c ****     (void)idx;
+ 237:CANopen/301/CO_HBconsumer.c ****     if (HBcons == NULL) {
+ 238:CANopen/301/CO_HBconsumer.c ****         return;
+ 239:CANopen/301/CO_HBconsumer.c ****     }
+ 240:CANopen/301/CO_HBconsumer.c **** 
+ 241:CANopen/301/CO_HBconsumer.c ****     HBcons->pFunctSignalNmtChanged = pFunctSignal;
+ 242:CANopen/301/CO_HBconsumer.c ****     HBcons->pFunctSignalObjectNmtChanged = object;
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 41
+
+
+ 243:CANopen/301/CO_HBconsumer.c **** }
+ 244:CANopen/301/CO_HBconsumer.c **** #endif
+ 245:CANopen/301/CO_HBconsumer.c **** 
+ 246:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0
+ 247:CANopen/301/CO_HBconsumer.c **** void
+ 248:CANopen/301/CO_HBconsumer.c **** CO_HBconsumer_initCallbackNmtChanged(CO_HBconsumer_t* HBcons, uint8_t idx, void* object,
+ 249:CANopen/301/CO_HBconsumer.c ****                                      void (*pFunctSignal)(uint8_t nodeId, uint8_t idx, CO_NMT_inter
+ 250:CANopen/301/CO_HBconsumer.c ****                                                           void* object)) {
+ 251:CANopen/301/CO_HBconsumer.c ****     if (HBcons == NULL || idx >= HBcons->numberOfMonitoredNodes) {
+ 252:CANopen/301/CO_HBconsumer.c ****         return;
+ 253:CANopen/301/CO_HBconsumer.c ****     }
+ 254:CANopen/301/CO_HBconsumer.c **** 
+ 255:CANopen/301/CO_HBconsumer.c ****     CO_HBconsNode_t* const monitoredNode = &HBcons->monitoredNodes[idx];
+ 256:CANopen/301/CO_HBconsumer.c ****     monitoredNode->pFunctSignalNmtChanged = pFunctSignal;
+ 257:CANopen/301/CO_HBconsumer.c ****     monitoredNode->pFunctSignalObjectNmtChanged = object;
+ 258:CANopen/301/CO_HBconsumer.c **** }
+ 259:CANopen/301/CO_HBconsumer.c **** 
+ 260:CANopen/301/CO_HBconsumer.c **** void
+ 261:CANopen/301/CO_HBconsumer.c **** CO_HBconsumer_initCallbackHeartbeatStarted(CO_HBconsumer_t* HBcons, uint8_t idx, void* object,
+ 262:CANopen/301/CO_HBconsumer.c ****                                            void (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void* 
+ 263:CANopen/301/CO_HBconsumer.c ****     CO_HBconsNode_t* monitoredNode;
+ 264:CANopen/301/CO_HBconsumer.c **** 
+ 265:CANopen/301/CO_HBconsumer.c ****     if (HBcons == NULL || idx >= HBcons->numberOfMonitoredNodes) {
+ 266:CANopen/301/CO_HBconsumer.c ****         return;
+ 267:CANopen/301/CO_HBconsumer.c ****     }
+ 268:CANopen/301/CO_HBconsumer.c **** 
+ 269:CANopen/301/CO_HBconsumer.c ****     monitoredNode = &HBcons->monitoredNodes[idx];
+ 270:CANopen/301/CO_HBconsumer.c ****     monitoredNode->pFunctSignalHbStarted = pFunctSignal;
+ 271:CANopen/301/CO_HBconsumer.c ****     monitoredNode->functSignalObjectHbStarted = object;
+ 272:CANopen/301/CO_HBconsumer.c **** }
+ 273:CANopen/301/CO_HBconsumer.c **** 
+ 274:CANopen/301/CO_HBconsumer.c **** void
+ 275:CANopen/301/CO_HBconsumer.c **** CO_HBconsumer_initCallbackTimeout(CO_HBconsumer_t* HBcons, uint8_t idx, void* object,
+ 276:CANopen/301/CO_HBconsumer.c ****                                   void (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void* object)) 
+ 277:CANopen/301/CO_HBconsumer.c ****     CO_HBconsNode_t* monitoredNode;
+ 278:CANopen/301/CO_HBconsumer.c **** 
+ 279:CANopen/301/CO_HBconsumer.c ****     if (HBcons == NULL || idx >= HBcons->numberOfMonitoredNodes) {
+ 280:CANopen/301/CO_HBconsumer.c ****         return;
+ 281:CANopen/301/CO_HBconsumer.c ****     }
+ 282:CANopen/301/CO_HBconsumer.c **** 
+ 283:CANopen/301/CO_HBconsumer.c ****     monitoredNode = &HBcons->monitoredNodes[idx];
+ 284:CANopen/301/CO_HBconsumer.c ****     monitoredNode->pFunctSignalTimeout = pFunctSignal;
+ 285:CANopen/301/CO_HBconsumer.c ****     monitoredNode->functSignalObjectTimeout = object;
+ 286:CANopen/301/CO_HBconsumer.c **** }
+ 287:CANopen/301/CO_HBconsumer.c **** 
+ 288:CANopen/301/CO_HBconsumer.c **** void
+ 289:CANopen/301/CO_HBconsumer.c **** CO_HBconsumer_initCallbackRemoteReset(CO_HBconsumer_t* HBcons, uint8_t idx, void* object,
+ 290:CANopen/301/CO_HBconsumer.c ****                                       void (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void* objec
+ 291:CANopen/301/CO_HBconsumer.c ****     CO_HBconsNode_t* monitoredNode;
+ 292:CANopen/301/CO_HBconsumer.c **** 
+ 293:CANopen/301/CO_HBconsumer.c ****     if (HBcons == NULL || idx >= HBcons->numberOfMonitoredNodes) {
+ 294:CANopen/301/CO_HBconsumer.c ****         return;
+ 295:CANopen/301/CO_HBconsumer.c ****     }
+ 296:CANopen/301/CO_HBconsumer.c **** 
+ 297:CANopen/301/CO_HBconsumer.c ****     monitoredNode = &HBcons->monitoredNodes[idx];
+ 298:CANopen/301/CO_HBconsumer.c ****     monitoredNode->pFunctSignalRemoteReset = pFunctSignal;
+ 299:CANopen/301/CO_HBconsumer.c ****     monitoredNode->functSignalObjectRemoteReset = object;
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 42
+
+
+ 300:CANopen/301/CO_HBconsumer.c **** }
+ 301:CANopen/301/CO_HBconsumer.c **** #endif /* (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI */
+ 302:CANopen/301/CO_HBconsumer.c **** 
+ 303:CANopen/301/CO_HBconsumer.c **** void
+ 304:CANopen/301/CO_HBconsumer.c **** CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uint32_t timeDifferenc
+ 305:CANopen/301/CO_HBconsumer.c ****                       uint32_t* timerNext_us) {
+ 741              		.loc 1 305 47 is_stmt 1 view -0
+ 742              		.cfi_startproc
+ 743              		@ args = 0, pretend = 0, frame = 0
+ 744              		@ frame_needed = 0, uses_anonymous_args = 0
+ 745              		.loc 1 305 47 is_stmt 0 view .LVU222
+ 746 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 747              	.LCFI11:
+ 748              		.cfi_def_cfa_offset 36
+ 749              		.cfi_offset 4, -36
+ 750              		.cfi_offset 5, -32
+ 751              		.cfi_offset 6, -28
+ 752              		.cfi_offset 7, -24
+ 753              		.cfi_offset 8, -20
+ 754              		.cfi_offset 9, -16
+ 755              		.cfi_offset 10, -12
+ 756              		.cfi_offset 11, -8
+ 757              		.cfi_offset 14, -4
+ 758 0004 83B0     		sub	sp, sp, #12
+ 759              	.LCFI12:
+ 760              		.cfi_def_cfa_offset 48
+ 761 0006 0446     		mov	r4, r0
+ 306:CANopen/301/CO_HBconsumer.c ****     (void)timerNext_us; /* may be unused */
+ 762              		.loc 1 306 5 is_stmt 1 view .LVU223
+ 307:CANopen/301/CO_HBconsumer.c **** 
+ 308:CANopen/301/CO_HBconsumer.c ****     bool_t allMonitoredActiveCurrent = true;
+ 763              		.loc 1 308 5 view .LVU224
+ 764              	.LVL79:
+ 309:CANopen/301/CO_HBconsumer.c ****     bool_t allMonitoredOperationalCurrent = true;
+ 765              		.loc 1 309 5 view .LVU225
+ 310:CANopen/301/CO_HBconsumer.c **** 
+ 311:CANopen/301/CO_HBconsumer.c ****     if (NMTisPreOrOperational && HBcons->NMTisPreOrOperationalPrev) {
+ 766              		.loc 1 311 5 view .LVU226
+ 767              		.loc 1 311 8 is_stmt 0 view .LVU227
+ 768 0008 0F46     		mov	r7, r1
+ 769 000a 0029     		cmp	r1, #0
+ 770 000c 54D0     		beq	.L51
+ 771 000e 9146     		mov	r9, r2
+ 772              		.loc 1 311 40 discriminator 1 view .LVU228
+ 773 0010 4369     		ldr	r3, [r0, #20]
+ 774              	.LVL80:
+ 775              		.loc 1 311 31 discriminator 1 view .LVU229
+ 776 0012 002B     		cmp	r3, #0
+ 777 0014 4BD1     		bne	.L67
+ 778 0016 0022     		movs	r2, #0
+ 779              	.LVL81:
+ 780              		.loc 1 311 31 discriminator 1 view .LVU230
+ 781 0018 56E0     		b	.L64
+ 782              	.LVL82:
+ 783              	.L74:
+ 784              	.LBB33:
+ 785              	.LBB34:
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 43
+
+
+ 312:CANopen/301/CO_HBconsumer.c ****         for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
+ 313:CANopen/301/CO_HBconsumer.c ****             uint32_t timeDifference_us_copy = timeDifference_us;
+ 314:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t* const monitoredNode = &HBcons->monitoredNodes[i];
+ 315:CANopen/301/CO_HBconsumer.c **** 
+ 316:CANopen/301/CO_HBconsumer.c ****             if (monitoredNode->HBstate == CO_HBconsumer_UNCONFIGURED) {
+ 317:CANopen/301/CO_HBconsumer.c ****                 /* continue, if node is not monitored */
+ 318:CANopen/301/CO_HBconsumer.c ****                 continue;
+ 319:CANopen/301/CO_HBconsumer.c ****             }
+ 320:CANopen/301/CO_HBconsumer.c ****             /* Verify if received message is heartbeat or bootup */
+ 321:CANopen/301/CO_HBconsumer.c ****             if (CO_FLAG_READ(monitoredNode->CANrxNew)) {
+ 322:CANopen/301/CO_HBconsumer.c ****                 if (monitoredNode->NMTstate == CO_NMT_INITIALIZING) {
+ 323:CANopen/301/CO_HBconsumer.c ****                     /* bootup message */
+ 324:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0
+ 325:CANopen/301/CO_HBconsumer.c ****                     if (monitoredNode->pFunctSignalRemoteReset != NULL) {
+ 326:CANopen/301/CO_HBconsumer.c ****                         monitoredNode->pFunctSignalRemoteReset(monitoredNode->nodeId, i,
+ 327:CANopen/301/CO_HBconsumer.c ****                                                                monitoredNode->functSignalObjectRemo
+ 328:CANopen/301/CO_HBconsumer.c ****                     }
+ 329:CANopen/301/CO_HBconsumer.c **** #endif
+ 330:CANopen/301/CO_HBconsumer.c ****                     if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
+ 331:CANopen/301/CO_HBconsumer.c ****                         CO_errorReport(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, CO_EMC_HEARTBEAT
+ 786              		.loc 1 331 25 is_stmt 1 view .LVU231
+ 787 001a 0096     		str	r6, [sp]
+ 788 001c 48F23013 		movw	r3, #33072
+ 789 0020 1C22     		movs	r2, #28
+ 790 0022 0121     		movs	r1, #1
+ 791 0024 2068     		ldr	r0, [r4]
+ 792 0026 FFF7FEFF 		bl	CO_error
+ 793              	.LVL83:
+ 794              	.L57:
+ 332:CANopen/301/CO_HBconsumer.c ****                     }
+ 333:CANopen/301/CO_HBconsumer.c ****                     monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
+ 795              		.loc 1 333 21 view .LVU232
+ 796              		.loc 1 333 44 is_stmt 0 view .LVU233
+ 797 002a 0123     		movs	r3, #1
+ 798 002c AB70     		strb	r3, [r5, #2]
+ 313:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t* const monitoredNode = &HBcons->monitoredNodes[i];
+ 799              		.loc 1 313 22 view .LVU234
+ 800 002e 4B46     		mov	r3, r9
+ 801              	.LVL84:
+ 802              	.L58:
+ 334:CANopen/301/CO_HBconsumer.c **** 
+ 335:CANopen/301/CO_HBconsumer.c ****                 } else {
+ 336:CANopen/301/CO_HBconsumer.c ****                     /* heartbeat message */
+ 337:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0
+ 338:CANopen/301/CO_HBconsumer.c ****                     if (monitoredNode->HBstate != CO_HBconsumer_ACTIVE
+ 339:CANopen/301/CO_HBconsumer.c ****                         && monitoredNode->pFunctSignalHbStarted != NULL) {
+ 340:CANopen/301/CO_HBconsumer.c ****                         monitoredNode->pFunctSignalHbStarted(monitoredNode->nodeId, i,
+ 341:CANopen/301/CO_HBconsumer.c ****                                                              monitoredNode->functSignalObjectHbStar
+ 342:CANopen/301/CO_HBconsumer.c ****                     }
+ 343:CANopen/301/CO_HBconsumer.c **** #endif
+ 344:CANopen/301/CO_HBconsumer.c ****                     monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
+ 345:CANopen/301/CO_HBconsumer.c ****                     /* reset timer */
+ 346:CANopen/301/CO_HBconsumer.c ****                     monitoredNode->timeoutTimer = 0;
+ 347:CANopen/301/CO_HBconsumer.c ****                     timeDifference_us_copy = 0;
+ 348:CANopen/301/CO_HBconsumer.c ****                 }
+ 349:CANopen/301/CO_HBconsumer.c ****                 CO_FLAG_CLEAR(monitoredNode->CANrxNew);
+ 803              		.loc 1 349 17 is_stmt 1 view .LVU235
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 44
+
+
+ 804              		.loc 1 349 17 view .LVU236
+ 805 0030 0022     		movs	r2, #0
+ 806 0032 EA60     		str	r2, [r5, #12]
+ 807              	.L55:
+ 808              		.loc 1 349 55 view .LVU237
+ 350:CANopen/301/CO_HBconsumer.c ****             }
+ 351:CANopen/301/CO_HBconsumer.c **** 
+ 352:CANopen/301/CO_HBconsumer.c ****             /* Verify timeout */
+ 353:CANopen/301/CO_HBconsumer.c ****             if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
+ 809              		.loc 1 353 13 view .LVU238
+ 810              		.loc 1 353 30 is_stmt 0 view .LVU239
+ 811 0034 AA78     		ldrb	r2, [r5, #2]	@ zero_extendqisi2
+ 812              		.loc 1 353 16 view .LVU240
+ 813 0036 022A     		cmp	r2, #2
+ 814 0038 25D0     		beq	.L73
+ 815              	.LVL85:
+ 816              	.L59:
+ 354:CANopen/301/CO_HBconsumer.c ****                 monitoredNode->timeoutTimer += timeDifference_us_copy;
+ 355:CANopen/301/CO_HBconsumer.c **** 
+ 356:CANopen/301/CO_HBconsumer.c ****                 if (monitoredNode->timeoutTimer >= monitoredNode->time_us) {
+ 357:CANopen/301/CO_HBconsumer.c ****                     /* timeout expired */
+ 358:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0
+ 359:CANopen/301/CO_HBconsumer.c ****                     if (monitoredNode->pFunctSignalTimeout != NULL) {
+ 360:CANopen/301/CO_HBconsumer.c ****                         monitoredNode->pFunctSignalTimeout(monitoredNode->nodeId, i,
+ 361:CANopen/301/CO_HBconsumer.c ****                                                            monitoredNode->functSignalObjectTimeout)
+ 362:CANopen/301/CO_HBconsumer.c ****                     }
+ 363:CANopen/301/CO_HBconsumer.c **** #endif
+ 364:CANopen/301/CO_HBconsumer.c ****                     CO_errorReport(HBcons->em, CO_EM_HEARTBEAT_CONSUMER, CO_EMC_HEARTBEAT, i);
+ 365:CANopen/301/CO_HBconsumer.c ****                     monitoredNode->NMTstate = CO_NMT_UNKNOWN;
+ 366:CANopen/301/CO_HBconsumer.c ****                     monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
+ 367:CANopen/301/CO_HBconsumer.c ****                 }
+ 368:CANopen/301/CO_HBconsumer.c **** 
+ 369:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_FLAG_TIMERNEXT) != 0
+ 370:CANopen/301/CO_HBconsumer.c ****                 else if (timerNext_us != NULL) {
+ 371:CANopen/301/CO_HBconsumer.c ****                     /* Calculate timerNext_us for next timeout checking. */
+ 372:CANopen/301/CO_HBconsumer.c ****                     uint32_t diff = monitoredNode->time_us - monitoredNode->timeoutTimer;
+ 373:CANopen/301/CO_HBconsumer.c ****                     if (*timerNext_us > diff) {
+ 374:CANopen/301/CO_HBconsumer.c ****                         *timerNext_us = diff;
+ 375:CANopen/301/CO_HBconsumer.c ****                     }
+ 376:CANopen/301/CO_HBconsumer.c ****                 }
+ 377:CANopen/301/CO_HBconsumer.c **** #endif
+ 378:CANopen/301/CO_HBconsumer.c ****             }
+ 379:CANopen/301/CO_HBconsumer.c **** 
+ 380:CANopen/301/CO_HBconsumer.c ****             if (monitoredNode->HBstate != CO_HBconsumer_ACTIVE) {
+ 817              		.loc 1 380 13 is_stmt 1 view .LVU241
+ 818              		.loc 1 380 30 is_stmt 0 view .LVU242
+ 819 003a AB78     		ldrb	r3, [r5, #2]	@ zero_extendqisi2
+ 820              		.loc 1 380 16 view .LVU243
+ 821 003c 022B     		cmp	r3, #2
+ 822 003e 01D0     		beq	.L60
+ 381:CANopen/301/CO_HBconsumer.c ****                 allMonitoredActiveCurrent = false;
+ 823              		.loc 1 381 43 view .LVU244
+ 824 0040 4FF0000A 		mov	r10, #0
+ 825              	.LVL86:
+ 826              	.L60:
+ 382:CANopen/301/CO_HBconsumer.c ****             }
+ 383:CANopen/301/CO_HBconsumer.c ****             if (monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 45
+
+
+ 827              		.loc 1 383 13 is_stmt 1 view .LVU245
+ 828              		.loc 1 383 30 is_stmt 0 view .LVU246
+ 829 0044 95F90130 		ldrsb	r3, [r5, #1]
+ 830              		.loc 1 383 16 view .LVU247
+ 831 0048 052B     		cmp	r3, #5
+ 832 004a 01D0     		beq	.L54
+ 384:CANopen/301/CO_HBconsumer.c ****                 allMonitoredOperationalCurrent = false;
+ 833              		.loc 1 384 48 view .LVU248
+ 834 004c 4FF00008 		mov	r8, #0
+ 835              	.LVL87:
+ 836              	.L54:
+ 837              		.loc 1 384 48 view .LVU249
+ 838              	.LBE34:
+ 312:CANopen/301/CO_HBconsumer.c ****             uint32_t timeDifference_us_copy = timeDifference_us;
+ 839              		.loc 1 312 66 is_stmt 1 discriminator 2 view .LVU250
+ 840 0050 0136     		adds	r6, r6, #1
+ 841              	.LVL88:
+ 312:CANopen/301/CO_HBconsumer.c ****             uint32_t timeDifference_us_copy = timeDifference_us;
+ 842              		.loc 1 312 66 is_stmt 0 discriminator 2 view .LVU251
+ 843 0052 F6B2     		uxtb	r6, r6
+ 844              	.LVL89:
+ 845              	.L52:
+ 312:CANopen/301/CO_HBconsumer.c ****             uint32_t timeDifference_us_copy = timeDifference_us;
+ 846              		.loc 1 312 31 is_stmt 1 discriminator 1 view .LVU252
+ 312:CANopen/301/CO_HBconsumer.c ****             uint32_t timeDifference_us_copy = timeDifference_us;
+ 847              		.loc 1 312 39 is_stmt 0 discriminator 1 view .LVU253
+ 848 0054 237A     		ldrb	r3, [r4, #8]	@ zero_extendqisi2
+ 312:CANopen/301/CO_HBconsumer.c ****             uint32_t timeDifference_us_copy = timeDifference_us;
+ 849              		.loc 1 312 31 discriminator 1 view .LVU254
+ 850 0056 B342     		cmp	r3, r6
+ 851 0058 4BD9     		bls	.L62
+ 852              	.LBB35:
+ 313:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t* const monitoredNode = &HBcons->monitoredNodes[i];
+ 853              		.loc 1 313 13 is_stmt 1 view .LVU255
+ 854              	.LVL90:
+ 314:CANopen/301/CO_HBconsumer.c **** 
+ 855              		.loc 1 314 13 view .LVU256
+ 314:CANopen/301/CO_HBconsumer.c **** 
+ 856              		.loc 1 314 59 is_stmt 0 view .LVU257
+ 857 005a 6568     		ldr	r5, [r4, #4]
+ 314:CANopen/301/CO_HBconsumer.c **** 
+ 858              		.loc 1 314 75 view .LVU258
+ 859 005c B346     		mov	fp, r6
+ 314:CANopen/301/CO_HBconsumer.c **** 
+ 860              		.loc 1 314 36 view .LVU259
+ 861 005e 05EB0615 		add	r5, r5, r6, lsl #4
+ 862              	.LVL91:
+ 316:CANopen/301/CO_HBconsumer.c ****                 /* continue, if node is not monitored */
+ 863              		.loc 1 316 13 is_stmt 1 view .LVU260
+ 316:CANopen/301/CO_HBconsumer.c ****                 /* continue, if node is not monitored */
+ 864              		.loc 1 316 30 is_stmt 0 view .LVU261
+ 865 0062 AB78     		ldrb	r3, [r5, #2]	@ zero_extendqisi2
+ 316:CANopen/301/CO_HBconsumer.c ****                 /* continue, if node is not monitored */
+ 866              		.loc 1 316 16 view .LVU262
+ 867 0064 002B     		cmp	r3, #0
+ 868 0066 F3D0     		beq	.L54
+ 321:CANopen/301/CO_HBconsumer.c ****                 if (monitoredNode->NMTstate == CO_NMT_INITIALIZING) {
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 46
+
+
+ 869              		.loc 1 321 13 is_stmt 1 view .LVU263
+ 321:CANopen/301/CO_HBconsumer.c ****                 if (monitoredNode->NMTstate == CO_NMT_INITIALIZING) {
+ 870              		.loc 1 321 17 is_stmt 0 view .LVU264
+ 871 0068 EA68     		ldr	r2, [r5, #12]
+ 321:CANopen/301/CO_HBconsumer.c ****                 if (monitoredNode->NMTstate == CO_NMT_INITIALIZING) {
+ 872              		.loc 1 321 16 view .LVU265
+ 873 006a 52B1     		cbz	r2, .L68
+ 322:CANopen/301/CO_HBconsumer.c ****                     /* bootup message */
+ 874              		.loc 1 322 17 is_stmt 1 view .LVU266
+ 322:CANopen/301/CO_HBconsumer.c ****                     /* bootup message */
+ 875              		.loc 1 322 34 is_stmt 0 view .LVU267
+ 876 006c 95F90120 		ldrsb	r2, [r5, #1]
+ 322:CANopen/301/CO_HBconsumer.c ****                     /* bootup message */
+ 877              		.loc 1 322 20 view .LVU268
+ 878 0070 12B9     		cbnz	r2, .L56
+ 330:CANopen/301/CO_HBconsumer.c ****                         CO_errorReport(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, CO_EMC_HEARTBEAT
+ 879              		.loc 1 330 21 is_stmt 1 view .LVU269
+ 330:CANopen/301/CO_HBconsumer.c ****                         CO_errorReport(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, CO_EMC_HEARTBEAT
+ 880              		.loc 1 330 24 is_stmt 0 view .LVU270
+ 881 0072 022B     		cmp	r3, #2
+ 882 0074 D9D1     		bne	.L57
+ 883 0076 D0E7     		b	.L74
+ 884              	.L56:
+ 344:CANopen/301/CO_HBconsumer.c ****                     /* reset timer */
+ 885              		.loc 1 344 21 is_stmt 1 view .LVU271
+ 344:CANopen/301/CO_HBconsumer.c ****                     /* reset timer */
+ 886              		.loc 1 344 44 is_stmt 0 view .LVU272
+ 887 0078 0223     		movs	r3, #2
+ 888 007a AB70     		strb	r3, [r5, #2]
+ 346:CANopen/301/CO_HBconsumer.c ****                     timeDifference_us_copy = 0;
+ 889              		.loc 1 346 21 is_stmt 1 view .LVU273
+ 346:CANopen/301/CO_HBconsumer.c ****                     timeDifference_us_copy = 0;
+ 890              		.loc 1 346 49 is_stmt 0 view .LVU274
+ 891 007c 0023     		movs	r3, #0
+ 892 007e 6B60     		str	r3, [r5, #4]
+ 347:CANopen/301/CO_HBconsumer.c ****                 }
+ 893              		.loc 1 347 21 is_stmt 1 view .LVU275
+ 894              	.LVL92:
+ 347:CANopen/301/CO_HBconsumer.c ****                 }
+ 895              		.loc 1 347 21 is_stmt 0 view .LVU276
+ 896 0080 D6E7     		b	.L58
+ 897              	.LVL93:
+ 898              	.L68:
+ 313:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t* const monitoredNode = &HBcons->monitoredNodes[i];
+ 899              		.loc 1 313 22 view .LVU277
+ 900 0082 4B46     		mov	r3, r9
+ 901 0084 D6E7     		b	.L55
+ 902              	.LVL94:
+ 903              	.L73:
+ 354:CANopen/301/CO_HBconsumer.c **** 
+ 904              		.loc 1 354 17 is_stmt 1 view .LVU278
+ 354:CANopen/301/CO_HBconsumer.c **** 
+ 905              		.loc 1 354 30 is_stmt 0 view .LVU279
+ 906 0086 6A68     		ldr	r2, [r5, #4]
+ 354:CANopen/301/CO_HBconsumer.c **** 
+ 907              		.loc 1 354 45 view .LVU280
+ 908 0088 1344     		add	r3, r3, r2
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 47
+
+
+ 909              	.LVL95:
+ 354:CANopen/301/CO_HBconsumer.c **** 
+ 910              		.loc 1 354 45 view .LVU281
+ 911 008a 6B60     		str	r3, [r5, #4]
+ 356:CANopen/301/CO_HBconsumer.c ****                     /* timeout expired */
+ 912              		.loc 1 356 17 is_stmt 1 view .LVU282
+ 356:CANopen/301/CO_HBconsumer.c ****                     /* timeout expired */
+ 913              		.loc 1 356 65 is_stmt 0 view .LVU283
+ 914 008c AA68     		ldr	r2, [r5, #8]
+ 356:CANopen/301/CO_HBconsumer.c ****                     /* timeout expired */
+ 915              		.loc 1 356 20 view .LVU284
+ 916 008e 9342     		cmp	r3, r2
+ 917 0090 D3D3     		bcc	.L59
+ 364:CANopen/301/CO_HBconsumer.c ****                     monitoredNode->NMTstate = CO_NMT_UNKNOWN;
+ 918              		.loc 1 364 21 is_stmt 1 view .LVU285
+ 919 0092 CDF800B0 		str	fp, [sp]
+ 920 0096 48F23013 		movw	r3, #33072
+ 921 009a 1B22     		movs	r2, #27
+ 922 009c 0121     		movs	r1, #1
+ 923 009e 2068     		ldr	r0, [r4]
+ 924 00a0 FFF7FEFF 		bl	CO_error
+ 925              	.LVL96:
+ 365:CANopen/301/CO_HBconsumer.c ****                     monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
+ 926              		.loc 1 365 21 view .LVU286
+ 365:CANopen/301/CO_HBconsumer.c ****                     monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
+ 927              		.loc 1 365 45 is_stmt 0 view .LVU287
+ 928 00a4 FF23     		movs	r3, #255
+ 929 00a6 6B70     		strb	r3, [r5, #1]
+ 366:CANopen/301/CO_HBconsumer.c ****                 }
+ 930              		.loc 1 366 21 is_stmt 1 view .LVU288
+ 366:CANopen/301/CO_HBconsumer.c ****                 }
+ 931              		.loc 1 366 44 is_stmt 0 view .LVU289
+ 932 00a8 0323     		movs	r3, #3
+ 933 00aa AB70     		strb	r3, [r5, #2]
+ 934 00ac C5E7     		b	.L59
+ 935              	.LVL97:
+ 936              	.L67:
+ 366:CANopen/301/CO_HBconsumer.c ****                 }
+ 937              		.loc 1 366 44 view .LVU290
+ 938              	.LBE35:
+ 312:CANopen/301/CO_HBconsumer.c ****             uint32_t timeDifference_us_copy = timeDifference_us;
+ 939              		.loc 1 312 22 view .LVU291
+ 940 00ae 0026     		movs	r6, #0
+ 941              	.LBE33:
+ 309:CANopen/301/CO_HBconsumer.c **** 
+ 942              		.loc 1 309 12 view .LVU292
+ 943 00b0 4FF00108 		mov	r8, #1
+ 308:CANopen/301/CO_HBconsumer.c ****     bool_t allMonitoredOperationalCurrent = true;
+ 944              		.loc 1 308 12 view .LVU293
+ 945 00b4 C246     		mov	r10, r8
+ 946 00b6 CDE7     		b	.L52
+ 947              	.LVL98:
+ 948              	.L51:
+ 385:CANopen/301/CO_HBconsumer.c ****             }
+ 386:CANopen/301/CO_HBconsumer.c **** #if (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0)                                 
+ 387:CANopen/301/CO_HBconsumer.c ****     || (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0)
+ 388:CANopen/301/CO_HBconsumer.c ****             /* Verify, if NMT state of monitored node changed */
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 48
+
+
+ 389:CANopen/301/CO_HBconsumer.c ****             if (monitoredNode->NMTstate != monitoredNode->NMTstatePrev) {
+ 390:CANopen/301/CO_HBconsumer.c **** #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0
+ 391:CANopen/301/CO_HBconsumer.c ****                 if (HBcons->pFunctSignalNmtChanged != NULL) {
+ 392:CANopen/301/CO_HBconsumer.c ****                     HBcons->pFunctSignalNmtChanged(monitoredNode->nodeId, i, monitoredNode->NMTstat
+ 393:CANopen/301/CO_HBconsumer.c ****                                                    HBcons->pFunctSignalObjectNmtChanged);
+ 394:CANopen/301/CO_HBconsumer.c **** #else
+ 395:CANopen/301/CO_HBconsumer.c ****                 if (monitoredNode->pFunctSignalNmtChanged != NULL) {
+ 396:CANopen/301/CO_HBconsumer.c ****                     monitoredNode->pFunctSignalNmtChanged(monitoredNode->nodeId, i, monitoredNode->
+ 397:CANopen/301/CO_HBconsumer.c ****                                                           monitoredNode->pFunctSignalObjectNmtChang
+ 398:CANopen/301/CO_HBconsumer.c **** #endif
+ 399:CANopen/301/CO_HBconsumer.c ****                 }
+ 400:CANopen/301/CO_HBconsumer.c ****                 monitoredNode->NMTstatePrev = monitoredNode->NMTstate;
+ 401:CANopen/301/CO_HBconsumer.c ****             }
+ 402:CANopen/301/CO_HBconsumer.c **** #endif
+ 403:CANopen/301/CO_HBconsumer.c ****         }
+ 404:CANopen/301/CO_HBconsumer.c ****     } else if (NMTisPreOrOperational || HBcons->NMTisPreOrOperationalPrev) {
+ 949              		.loc 1 404 47 discriminator 1 view .LVU294
+ 950 00b8 4369     		ldr	r3, [r0, #20]
+ 951              	.LVL99:
+ 952              		.loc 1 404 38 discriminator 1 view .LVU295
+ 953 00ba ABB9     		cbnz	r3, .L71
+ 309:CANopen/301/CO_HBconsumer.c **** 
+ 954              		.loc 1 309 12 view .LVU296
+ 955 00bc 4FF00108 		mov	r8, #1
+ 308:CANopen/301/CO_HBconsumer.c ****     bool_t allMonitoredOperationalCurrent = true;
+ 956              		.loc 1 308 12 view .LVU297
+ 957 00c0 C246     		mov	r10, r8
+ 958 00c2 16E0     		b	.L62
+ 959              	.LVL100:
+ 960              	.L63:
+ 961              	.LBB36:
+ 405:CANopen/301/CO_HBconsumer.c ****         /* (pre)operational state changed, clear variables */
+ 406:CANopen/301/CO_HBconsumer.c ****         for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
+ 962              		.loc 1 406 66 is_stmt 1 discriminator 2 view .LVU298
+ 963 00c4 0132     		adds	r2, r2, #1
+ 964              	.LVL101:
+ 965              		.loc 1 406 66 is_stmt 0 discriminator 2 view .LVU299
+ 966 00c6 D2B2     		uxtb	r2, r2
+ 967              	.LVL102:
+ 968              	.L64:
+ 969              		.loc 1 406 31 is_stmt 1 discriminator 1 view .LVU300
+ 970              		.loc 1 406 39 is_stmt 0 discriminator 1 view .LVU301
+ 971 00c8 237A     		ldrb	r3, [r4, #8]	@ zero_extendqisi2
+ 972              		.loc 1 406 31 discriminator 1 view .LVU302
+ 973 00ca 9342     		cmp	r3, r2
+ 974 00cc 0ED9     		bls	.L75
+ 975              	.LBB37:
+ 407:CANopen/301/CO_HBconsumer.c ****             CO_HBconsNode_t* const monitoredNode = &HBcons->monitoredNodes[i];
+ 976              		.loc 1 407 13 is_stmt 1 view .LVU303
+ 977              		.loc 1 407 59 is_stmt 0 view .LVU304
+ 978 00ce 6368     		ldr	r3, [r4, #4]
+ 979              		.loc 1 407 36 view .LVU305
+ 980 00d0 03EB0213 		add	r3, r3, r2, lsl #4
+ 981              	.LVL103:
+ 408:CANopen/301/CO_HBconsumer.c ****             monitoredNode->NMTstate = CO_NMT_UNKNOWN;
+ 982              		.loc 1 408 13 is_stmt 1 view .LVU306
+ 983              		.loc 1 408 37 is_stmt 0 view .LVU307
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 49
+
+
+ 984 00d4 FF21     		movs	r1, #255
+ 985 00d6 5970     		strb	r1, [r3, #1]
+ 409:CANopen/301/CO_HBconsumer.c **** #if (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0)                                 
+ 410:CANopen/301/CO_HBconsumer.c ****     || (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0)
+ 411:CANopen/301/CO_HBconsumer.c ****             monitoredNode->NMTstatePrev = CO_NMT_UNKNOWN;
+ 412:CANopen/301/CO_HBconsumer.c **** #endif
+ 413:CANopen/301/CO_HBconsumer.c ****             CO_FLAG_CLEAR(monitoredNode->CANrxNew);
+ 986              		.loc 1 413 13 is_stmt 1 view .LVU308
+ 987              		.loc 1 413 13 view .LVU309
+ 988 00d8 0021     		movs	r1, #0
+ 989 00da D960     		str	r1, [r3, #12]
+ 990              		.loc 1 413 51 view .LVU310
+ 414:CANopen/301/CO_HBconsumer.c ****             if (monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED) {
+ 991              		.loc 1 414 13 view .LVU311
+ 992              		.loc 1 414 30 is_stmt 0 view .LVU312
+ 993 00dc 9978     		ldrb	r1, [r3, #2]	@ zero_extendqisi2
+ 994              		.loc 1 414 16 view .LVU313
+ 995 00de 0029     		cmp	r1, #0
+ 996 00e0 F0D0     		beq	.L63
+ 415:CANopen/301/CO_HBconsumer.c ****                 monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
+ 997              		.loc 1 415 17 is_stmt 1 view .LVU314
+ 998              		.loc 1 415 40 is_stmt 0 view .LVU315
+ 999 00e2 0121     		movs	r1, #1
+ 1000 00e4 9970     		strb	r1, [r3, #2]
+ 1001 00e6 EDE7     		b	.L63
+ 1002              	.LVL104:
+ 1003              	.L71:
+ 1004              		.loc 1 415 40 view .LVU316
+ 1005              	.LBE37:
+ 1006              	.LBE36:
+ 1007 00e8 0022     		movs	r2, #0
+ 1008              	.LVL105:
+ 1009              		.loc 1 415 40 view .LVU317
+ 1010 00ea EDE7     		b	.L64
+ 1011              	.LVL106:
+ 1012              	.L75:
+ 416:CANopen/301/CO_HBconsumer.c ****             }
+ 417:CANopen/301/CO_HBconsumer.c ****         }
+ 418:CANopen/301/CO_HBconsumer.c ****         allMonitoredActiveCurrent = false;
+ 419:CANopen/301/CO_HBconsumer.c ****         allMonitoredOperationalCurrent = false;
+ 1013              		.loc 1 419 40 view .LVU318
+ 1014 00ec 4FF00008 		mov	r8, #0
+ 418:CANopen/301/CO_HBconsumer.c ****         allMonitoredOperationalCurrent = false;
+ 1015              		.loc 1 418 35 view .LVU319
+ 1016 00f0 C246     		mov	r10, r8
+ 1017              	.LVL107:
+ 1018              	.L62:
+ 420:CANopen/301/CO_HBconsumer.c ****     } else { /* MISRA C 2004 14.10 */
+ 421:CANopen/301/CO_HBconsumer.c ****     }
+ 422:CANopen/301/CO_HBconsumer.c **** 
+ 423:CANopen/301/CO_HBconsumer.c ****     /* Clear emergencies when all monitored nodes becomes active.
+ 424:CANopen/301/CO_HBconsumer.c ****      * We only have one emergency index for all monitored nodes! */
+ 425:CANopen/301/CO_HBconsumer.c ****     if (!HBcons->allMonitoredActive && allMonitoredActiveCurrent) {
+ 1019              		.loc 1 425 5 is_stmt 1 view .LVU320
+ 1020              		.loc 1 425 16 is_stmt 0 view .LVU321
+ 1021 00f2 E368     		ldr	r3, [r4, #12]
+ 1022              		.loc 1 425 8 view .LVU322
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 50
+
+
+ 1023 00f4 13B9     		cbnz	r3, .L66
+ 1024              		.loc 1 425 37 discriminator 1 view .LVU323
+ 1025 00f6 BAF1000F 		cmp	r10, #0
+ 1026 00fa 07D1     		bne	.L76
+ 1027              	.L66:
+ 426:CANopen/301/CO_HBconsumer.c ****         CO_errorReset(HBcons->em, CO_EM_HEARTBEAT_CONSUMER, 0);
+ 427:CANopen/301/CO_HBconsumer.c ****         CO_errorReset(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, 0);
+ 428:CANopen/301/CO_HBconsumer.c ****     }
+ 429:CANopen/301/CO_HBconsumer.c **** 
+ 430:CANopen/301/CO_HBconsumer.c ****     HBcons->allMonitoredActive = allMonitoredActiveCurrent;
+ 1028              		.loc 1 430 5 is_stmt 1 view .LVU324
+ 1029              		.loc 1 430 32 is_stmt 0 view .LVU325
+ 1030 00fc C4F80CA0 		str	r10, [r4, #12]
+ 431:CANopen/301/CO_HBconsumer.c ****     HBcons->allMonitoredOperational = allMonitoredOperationalCurrent;
+ 1031              		.loc 1 431 5 is_stmt 1 view .LVU326
+ 1032              		.loc 1 431 37 is_stmt 0 view .LVU327
+ 1033 0100 C4F81080 		str	r8, [r4, #16]
+ 432:CANopen/301/CO_HBconsumer.c ****     HBcons->NMTisPreOrOperationalPrev = NMTisPreOrOperational;
+ 1034              		.loc 1 432 5 is_stmt 1 view .LVU328
+ 1035              		.loc 1 432 39 is_stmt 0 view .LVU329
+ 1036 0104 6761     		str	r7, [r4, #20]
+ 433:CANopen/301/CO_HBconsumer.c **** }
+ 1037              		.loc 1 433 1 view .LVU330
+ 1038 0106 03B0     		add	sp, sp, #12
+ 1039              	.LCFI13:
+ 1040              		.cfi_remember_state
+ 1041              		.cfi_def_cfa_offset 36
+ 1042              		@ sp needed
+ 1043 0108 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1044              	.LVL108:
+ 1045              	.L76:
+ 1046              	.LCFI14:
+ 1047              		.cfi_restore_state
+ 426:CANopen/301/CO_HBconsumer.c ****         CO_errorReset(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, 0);
+ 1048              		.loc 1 426 9 is_stmt 1 view .LVU331
+ 1049 010c 0025     		movs	r5, #0
+ 1050 010e 0095     		str	r5, [sp]
+ 1051 0110 2B46     		mov	r3, r5
+ 1052 0112 1B22     		movs	r2, #27
+ 1053 0114 2946     		mov	r1, r5
+ 1054 0116 2068     		ldr	r0, [r4]
+ 1055 0118 FFF7FEFF 		bl	CO_error
+ 1056              	.LVL109:
+ 427:CANopen/301/CO_HBconsumer.c ****     }
+ 1057              		.loc 1 427 9 view .LVU332
+ 1058 011c 0095     		str	r5, [sp]
+ 1059 011e 2B46     		mov	r3, r5
+ 1060 0120 1C22     		movs	r2, #28
+ 1061 0122 2946     		mov	r1, r5
+ 1062 0124 2068     		ldr	r0, [r4]
+ 1063 0126 FFF7FEFF 		bl	CO_error
+ 1064              	.LVL110:
+ 1065 012a E7E7     		b	.L66
+ 1066              		.cfi_endproc
+ 1067              	.LFE40:
+ 1069              		.text
+ 1070              	.Letext0:
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 51
+
+
+ 1071              		.file 4 "D:\\vscode\\stm32cubecltv122\\stm32cubeclt_1.22.0-Win-x86_64.exe\\anzhuang\\STM32CubeCLT_
+ 1072              		.file 5 "D:\\vscode\\stm32cubecltv122\\stm32cubeclt_1.22.0-Win-x86_64.exe\\anzhuang\\STM32CubeCLT_
+ 1073              		.file 6 "D:\\vscode\\stm32cubecltv122\\stm32cubeclt_1.22.0-Win-x86_64.exe\\anzhuang\\STM32CubeCLT_
+ 1074              		.file 7 "CANopen/example/CO_driver_target.h"
+ 1075              		.file 8 "CANopen/301/CO_Emergency.h"
+ 1076              		.file 9 "CANopen/301/CO_NMT_Heartbeat.h"
+ 1077              		.file 10 "CANopen/301/CO_HBconsumer.h"
+ 1078              		.file 11 "D:\\vscode\\stm32cubecltv122\\stm32cubeclt_1.22.0-Win-x86_64.exe\\anzhuang\\STM32CubeCLT
+ 1079              		.file 12 "<built-in>"
+ARM GAS  C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s 			page 52
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 CO_HBconsumer.c
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:21     .text.CO_HBcons_receive:00000000 $t
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:26     .text.CO_HBcons_receive:00000000 CO_HBcons_receive
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:45     .text.CO_HBconsumer_initEntry:00000000 $t
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:50     .text.CO_HBconsumer_initEntry:00000000 CO_HBconsumer_initEntry
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:254    .text.CO_HBconsumer_initEntry:000000c8 $d
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:259    .text.OD_write_1016:00000000 $t
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:264    .text.OD_write_1016:00000000 OD_write_1016
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:424    .text.CO_HBconsumer_init:00000000 $t
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:430    .text.CO_HBconsumer_init:00000000 CO_HBconsumer_init
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:726    .text.CO_HBconsumer_init:000000e8 $d
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:732    .text.CO_HBconsumer_process:00000000 $t
+C:\Users\Lenovo\AppData\Local\Temp\ccDIPO9e.s:738    .text.CO_HBconsumer_process:00000000 CO_HBconsumer_process
+                           .group:00000000 wm4.0.35f3e76e42575b99374c7d5ae37ca977
+                           .group:00000000 wm4._newlib_version.h.4.0eb654b64686e2bd29646258853f6c22
+                           .group:00000000 wm4.newlib.h.27.b904f6f8971bd921b436e5701877de32
+                           .group:00000000 wm4.ieeefp.h.77.61a77db5804869b1dadd307a77cf78c9
+                           .group:00000000 wm4.features.h.22.4b93ad64e0d80833c46a20ecae380bb0
+                           .group:00000000 wm4.config.h.224.10ee1ad185d877c6e334e6581faab44d
+                           .group:00000000 wm4._ansi.h.31.de524f58584151836e90d8620a16f8e8
+                           .group:00000000 wm4.stddef.h.39.811583f327f35b0df7808fda70b062a0
+                           .group:00000000 wm4._default_types.h.6.959254cf5f09734ea7516c89e8bb21bd
+                           .group:00000000 wm4.cdefs.h.49.56fd742369e655e7e8a7e365e706e208
+                           .group:00000000 wm4._types.h.20.dd0d04dca3800a0d2a6129b87f3adbb2
+                           .group:00000000 wm4.stddef.h.173.4903093a50a8482cb062b176ea61fac3
+                           .group:00000000 wm4._types.h.127.3bdfe3ff8ea2d0985b03d9cbe93480e3
+                           .group:00000000 wm4.reent.h.18.25503cdc8b7e55dd0d6ea7b3e5af7a03
+                           .group:00000000 wm4.lock.h.2.1461d1fff82dffe8bfddc23307f6484f
+                           .group:00000000 wm4.reent.h.78.6d702f69a6d6435d2dbe915b10150b1a
+                           .group:00000000 wm4.string.h.15.dab3980bf35408a4c507182805e2de3a
+                           .group:00000000 wm4.stddef.h.173.1cea4f16a943c8e875db6791959c3141
+                           .group:00000000 wm4.string.h.177.59a005921fa78485abc80a0267de5752
+                           .group:00000000 wm4.CO_config.h.22.452d50582397b0b53966b3c1806ccf35
+                           .group:00000000 wm4.stdbool.h.29.c08aa3eec75cf5b9b5003883f43253f0
+                           .group:00000000 wm4._intsup.h.10.48bafbb683905c4daa4565a85aeeb264
+                           .group:00000000 wm4._stdint.h.10.c24fa3af3bc1706662bb5593a907e841
+                           .group:00000000 wm4.stdint.h.23.d53047a68f4a85177f80b422d52785ed
+                           .group:00000000 wm4.CO_driver_target.h.41.ddd9ad301db6ca3aeb9eb6b4ba80bd58
+                           .group:00000000 wm4.CO_driver.h.35.ff7c66b5b3baf7d65aef1dd87f3079c4
+                           .group:00000000 wm4.CO_ODinterface.h.22.cd716bb058f440300efc08854f292063
+                           .group:00000000 wm4.CO_Emergency.h.22.41b266f360f60ca97b32af88c96ba262
+                           .group:00000000 wm4.CO_NMT_Heartbeat.h.30.2a9f5674d06b4835a49e26d6666c769b
+
+UNDEFINED SYMBOLS
+CO_CANrxBufferInit
+OD_writeOriginal
+memset
+OD_get_value
+OD_readOriginal
+CO_error
